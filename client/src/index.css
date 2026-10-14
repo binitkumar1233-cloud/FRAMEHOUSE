@@ -1,0 +1,169 @@
+:root {
+  /* Surfaces */
+  --bg: #070a24;
+  --surface: #0e1337;
+  --surface-2: #161d4d;
+  --surface-3: #222b66;
+
+  /* Text */
+  --text: #f5f7fb;
+  --text-soft: #dce5f0;
+  --text-secondary: #b1bfd1;
+  --muted: #91a1b7;
+  --text-muted: #788ba3;
+  --faint: #788ba3;
+
+  /* Lines */
+  --line: rgba(205, 220, 240, 0.1);
+  --line-strong: rgba(205, 220, 240, 0.18);
+
+  /* Brand */
+  --primary: #6366f1;
+  --primary-hover: #a5b4fc;
+  --primary-dark: #4f46e5;
+  --primary-glow: rgba(99, 102, 241, 0.4);
+  --accent: #f5c451;
+  --accent-soft: rgba(245, 196, 81, 0.14);
+  --violet: #7c5cf0;
+  --brand-gradient: linear-gradient(120deg, #6366f1 0%, #7c5cf0 55%, #f5c451 125%);
+  --brand-gradient-text: linear-gradient(100deg, #c7d2fe 0%, #f5d98b 55%, #f5c451 100%);
+
+  /* Status */
+  --success: #32d583;
+  --danger: #ff5f6d;
+  --gold: #e5bd67;
+  --gold-soft: rgba(229, 189, 103, 0.14);
+
+  /* Shape */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  /* Depth */
+  --shadow-sm: 0 10px 30px rgba(0, 0, 0, 0.22);
+  --shadow-md: 0 22px 55px rgba(0, 0, 0, 0.36);
+  --shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.5);
+
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+
+  color: var(--text);
+  background: var(--bg);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  color-scheme: dark;
+}
+
+/* Light theme: shown by default for sign-ins between 5 AM and 12 PM IST, or when chosen in Settings. */
+:root[data-theme="light"] {
+  --bg: #f5f6ff;
+  --surface: #ffffff;
+  --surface-2: #eceefc;
+  --surface-3: #dfe2f7;
+
+  --text: #12163f;
+  --text-soft: #2a2f63;
+  --text-secondary: #474c80;
+  --muted: #59608f;
+  --text-muted: #707699;
+  --faint: #707699;
+
+  --line: rgba(30, 45, 110, 0.11);
+  --line-strong: rgba(30, 45, 110, 0.2);
+
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-dark: #3730a3;
+  --primary-glow: rgba(79, 70, 229, 0.26);
+  --accent: #b7791f;
+  --accent-soft: rgba(109, 77, 224, 0.1);
+  --violet: #6d4de0;
+  --brand-gradient: linear-gradient(120deg, #4f46e5 0%, #6d4de0 55%, #d99a1c 140%);
+  --brand-gradient-text: linear-gradient(100deg, #4338ca 0%, #6d4de0 55%, #d99a1c 100%);
+
+  --success: #0f8a57;
+  --danger: #cc3140;
+  --gold: #8f6a10;
+  --gold-soft: rgba(143, 106, 16, 0.12);
+
+  --shadow-sm: 0 8px 24px rgba(15, 35, 80, 0.08);
+  --shadow-md: 0 18px 44px rgba(15, 35, 80, 0.12);
+  --shadow-lg: 0 26px 70px rgba(15, 35, 80, 0.16);
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  min-height: 100%;
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img,
+video {
+  max-width: 100%;
+}
+
+img {
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Accessibility */
+:focus-visible {
+  outline: 2px solid var(--primary-hover);
+  outline-offset: 3px;
+}
+
+/* Prevent accidental horizontal scrolling.
+   `clip` (unlike `hidden`) does not create a scroll container,
+   so the sticky navbar keeps working. */
+html,
+body,
+#root {
+  overflow-x: clip;
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+  html {
+    font-size: 15px;
+  }
+}

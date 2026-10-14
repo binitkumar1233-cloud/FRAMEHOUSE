@@ -1,0 +1,601 @@
+/* Comments section (works in both themes through the colour tokens) */
+
+.cm-section {
+  scroll-margin-top: 90px;
+  margin-top: 56px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+}
+
+.cm-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.cm-head h2 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.cm-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.cm-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.cm-controls select {
+  padding: 8px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface-2);
+  font-size: 13px;
+}
+
+/* ---------- composer ---------- */
+
+.cm-composer {
+  margin-bottom: 8px;
+}
+
+.cm-field {
+  position: relative;
+}
+
+.cm-composer textarea {
+  width: 100%;
+  min-height: 84px;
+  max-height: 260px;
+  padding: 14px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  outline: 0;
+  resize: none;
+  color: var(--text);
+  background: var(--surface);
+  font-size: 15px;
+  line-height: 1.55;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cm-composer.compact textarea {
+  min-height: 60px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.cm-composer textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.cm-composer textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.cm-composer-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cm-composer-foot > div {
+  display: flex;
+  gap: 8px;
+}
+
+.cm-count {
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.cm-count.warn {
+  color: var(--danger);
+}
+
+.cm-error {
+  min-height: 20px;
+  margin: 6px 0 2px;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.cm-captcha {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  color: var(--text-soft);
+  background: var(--surface-2);
+  font-size: 14px;
+}
+
+.cm-captcha input {
+  width: 90px;
+  padding: 7px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface);
+  font-size: 14px;
+}
+
+.cm-suggest {
+  position: absolute;
+  z-index: 20;
+  left: 8px;
+  bottom: calc(100% - 4px);
+  min-width: 220px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.cm-suggest button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--text);
+  background: transparent;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cm-suggest button:hover {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+/* ---------- buttons ---------- */
+
+.cm-btn {
+  padding: 9px 18px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--text);
+  background: transparent;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.cm-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+.cm-btn.primary {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+}
+
+.cm-btn.ghost {
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.cm-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.cm-btn.more {
+  display: block;
+  margin: 24px auto 0;
+}
+
+.cm-signin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.cm-signin p {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* ---------- list ---------- */
+
+.cm-list {
+  margin-top: 22px;
+}
+
+.cm-item {
+  display: flex;
+  gap: 14px;
+  padding: 16px 0;
+}
+
+.cm-list > .cm-item + .cm-item {
+  border-top: 1px solid var(--line);
+}
+
+.cm-item.is-reply {
+  padding: 12px 0;
+}
+
+.cm-avatar {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.is-reply > .cm-avatar {
+  width: 30px;
+  height: 30px;
+}
+
+.cm-avatar-initial {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(145deg, var(--primary), var(--primary-dark));
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.is-reply > .cm-avatar-initial {
+  font-size: 12px;
+}
+
+.cm-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.cm-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.cm-meta strong {
+  color: var(--text);
+  font-size: 13.5px;
+}
+
+.cm-meta time,
+.cm-loc,
+.cm-edited {
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.cm-loc {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.cm-edited {
+  font-style: italic;
+}
+
+.cm-replying {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.cm-text {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.cm-text a {
+  color: var(--primary-hover);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cm-mention {
+  color: var(--primary-hover);
+  font-weight: 600;
+}
+
+.cm-deleted {
+  margin: 0 0 4px;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.cm-translated-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.cm-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  margin-top: 8px;
+  margin-left: -8px;
+}
+
+.cm-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.cm-act:hover:not(:disabled) {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.cm-act.on {
+  color: var(--primary-hover);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.cm-act.on.bad {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.cm-act.subtle {
+  margin-left: auto;
+  opacity: 0.75;
+}
+
+.cm-act:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.cm-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 4px 0;
+  border: 0;
+  color: var(--primary-hover);
+  background: transparent;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cm-link svg.flip {
+  transform: rotate(180deg);
+}
+
+.cm-replies {
+  margin-top: 4px;
+  padding-left: 4px;
+  border-left: 2px solid var(--line);
+}
+
+.cm-replies > .cm-item {
+  padding-left: 14px;
+}
+
+.cm-muted,
+.cm-empty {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.cm-empty {
+  padding: 30px 0;
+  text-align: center;
+}
+
+.cm-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+  border-radius: 12px;
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 6%, transparent);
+}
+
+.cm-state p {
+  margin: 0;
+}
+
+.cm-skeleton {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.cm-skeleton span {
+  height: 64px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: sec-shimmer 1.4s linear infinite;
+}
+
+.reduce-motion .cm-skeleton span {
+  animation: none;
+}
+
+/* ---------- report dialog ---------- */
+
+.cm-report {
+  width: min(460px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 24px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.cm-report h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+.cm-report p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.cm-report [role="radiogroup"] {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.cm-report label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.cm-report label.selected {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.cm-report input[type="radio"] {
+  margin-top: 3px;
+  accent-color: var(--primary);
+}
+
+.cm-report label span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cm-report label strong {
+  font-size: 14px;
+}
+
+.cm-report label small {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.cm-report textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--surface-2);
+  font-size: 14px;
+  resize: vertical;
+}
+
+.cm-report-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+@media (max-width: 640px) {
+  .cm-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cm-controls {
+    width: 100%;
+  }
+
+  .cm-controls label {
+    flex: 1;
+  }
+
+  .cm-controls select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cm-signin {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cm-avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .cm-item {
+    gap: 10px;
+  }
+
+  .cm-replies > .cm-item {
+    padding-left: 8px;
+  }
+
+  .cm-act.subtle {
+    margin-left: 0;
+  }
+}
