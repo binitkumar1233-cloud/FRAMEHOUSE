@@ -27,6 +27,38 @@ app.use(express.json({ verify: (req, _res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ extended: true }));
 app.use(deviceInfo);
 
+// Cached so serverless invocations reuse one connection and wait for it.
+let connecting = null;
+const connectDb = () => {
+  if (mongoose.connection.readyState === 1) return Promise.resolve();
+  if (!connecting) {
+    connecting = mongoose
+      .connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 8000 })
+      .then(() => {
+        console.log("MongoDB connected successfully");
+        // Expire ended plans, send renewal reminders, close abandoned orders.
+        if (!process.env.VERCEL) startSubscriptionJobs();
+      })
+      .catch((error) => {
+        connecting = null;
+        console.log("MongoDB connection error:", error.message);
+        throw error;
+      });
+  }
+  return connecting;
+};
+
+connectDb().catch(() => {});
+
+app.use("/api", async (_req, res, next) => {
+  try {
+    await connectDb();
+    next();
+  } catch (error) {
+    res.status(503).json({ success: false, message: "Database unavailable", detail: error.message });
+  }
+});
+
 const authRoutes = require("./routes/authRoutes");
 
 app.use("/api/comments", require("./routes/commentRoutes"));
@@ -54,17 +86,6 @@ const io = new Server(server, {
 });
 
 app.set("io", io);
-
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB connected successfully");
-    // Expire ended plans, send renewal reminders, close abandoned orders.
-    startSubscriptionJobs();
-  })
-  .catch((error) => {
-    console.log("MongoDB connection error:", error.message);
-  });
 
 app.get("/", (req, res) => {
   res.json({
