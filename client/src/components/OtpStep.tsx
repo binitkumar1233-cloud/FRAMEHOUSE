@@ -57,7 +57,7 @@ export function OtpStep({ challenge, busy, onVerify, onResend, onCancel }: Props
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (code.length !== 6) {
-      setError("Enter the 6-digit code from your email.");
+      setError("Enter the 6-digit code we sent you.");
       return;
     }
     setError("");
@@ -81,9 +81,10 @@ export function OtpStep({ challenge, busy, onVerify, onResend, onCancel }: Props
   return (
     <div className="otp-step">
       <span className="eyebrow">VERIFY IT'S YOU</span>
-      <h2 id="auth-title">Check your email</h2>
+      <h2 id="auth-title">{challenge.maskedPhone ? "Check your email and phone" : "Check your email"}</h2>
       <p className="otp-lead">
         We sent a 6-digit code to <strong>{challenge.maskedEmail}</strong>
+        {challenge.maskedPhone && <> and by text to <strong>{challenge.maskedPhone}</strong></>}
         {reasons.length > 0 && <> because this sign-in is from {list(reasons)}</>}.
       </p>
 

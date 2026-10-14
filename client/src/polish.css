@@ -1,0 +1,278 @@
+/* Polish layer: consistency and finish across every page. Loaded after brand.css. */
+
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --field-bg: color-mix(in srgb, var(--surface-2) 70%, transparent);
+}
+
+/* Numbers line up in prices, stats, timers and tables */
+.stat-card strong,
+.pricing-card h2,
+.sec-stats strong,
+.otp-foot,
+time {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Forms: one look for every input ---------- */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+textarea,
+select {
+  background: var(--field-bg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  transition: border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), background 0.2s var(--ease-out);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):hover,
+textarea:hover,
+select:hover {
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--line-strong));
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary-hover);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 28%, transparent);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+input[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 22%, transparent);
+}
+
+/* ---------- Buttons: tactile press ---------- */
+.primary-button,
+.small-primary,
+.line-button,
+.sec-action {
+  transition: transform 0.18s var(--ease-out), box-shadow 0.2s var(--ease-out), border-color 0.2s, background 0.2s, filter 0.2s;
+}
+
+.primary-button:active,
+.small-primary:active,
+.line-button:active,
+.sec-action:active {
+  transform: translateY(1px) scale(0.985);
+}
+
+button:disabled,
+.primary-button:disabled,
+.line-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: saturate(0.7);
+  box-shadow: none;
+}
+
+/* ---------- Cards: gentle lift ---------- */
+.stat-card,
+.subscription-card,
+.pricing-card,
+.feature-card,
+.sec-card,
+.video-card {
+  transition: transform 0.28s var(--ease-out), box-shadow 0.28s var(--ease-out), border-color 0.28s;
+}
+
+@media (hover: hover) {
+  .pricing-card:hover,
+  .feature-card:hover,
+  .stat-card:hover {
+    transform: translateY(-4px);
+  }
+}
+
+/* Sections inside a settings card get breathing room and a clear divider */
+.sec-card > header {
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sec-card > header h2 {
+  letter-spacing: -0.01em;
+}
+
+.sec-password-form {
+  display: grid;
+  gap: 14px;
+  max-width: 460px;
+}
+
+.sec-password-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sec-password-form input {
+  padding: 12px 14px;
+  min-height: 44px;
+}
+
+.sec-password-form .primary-button {
+  justify-self: start;
+}
+
+/* ---------- Loading skeletons shimmer ---------- */
+.sec-skeleton,
+.skeleton,
+[class*="skeleton"] {
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in srgb, var(--text) 9%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  animation: polish-shimmer 1.4s linear infinite;
+}
+
+@keyframes polish-shimmer {
+  from { background-position: 120% 0; }
+  to { background-position: -120% 0; }
+}
+
+/* ---------- Empty states ---------- */
+.empty-state {
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--line-strong);
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
+}
+
+/* ---------- Scrollbars match the theme ---------- */
+html {
+  scrollbar-color: color-mix(in srgb, var(--primary) 55%, var(--surface-3)) var(--bg);
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--primary) 45%, var(--surface-3));
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* ---------- Toasts and dialogs ---------- */
+[role="dialog"],
+[role="alertdialog"] {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ---------- Light theme contrast: the cyan accents are only readable on dark ---------- */
+:root[data-theme="light"] .hero-home-premium .eyebrow,
+:root[data-theme="light"] .browse-page .eyebrow,
+:root[data-theme="light"] .browse-page .video-card .video-meta span {
+  color: #0e7490;
+}
+
+:root[data-theme="light"] .hero-home-premium .eyebrow,
+:root[data-theme="light"] .browse-page .eyebrow {
+  background: rgba(14, 116, 144, 0.08);
+  border-color: rgba(14, 116, 144, 0.35);
+}
+
+/* ---------- Tablet ---------- */
+@media (max-width: 900px) {
+  .page-wrap {
+    padding-inline: clamp(16px, 4vw, 28px);
+  }
+}
+
+/* ---------- Phone ---------- */
+@media (max-width: 600px) {
+  /* Comfortable touch targets */
+  .primary-button,
+  .small-primary,
+  .line-button,
+  .sec-action,
+  .forgot-password-link,
+  .otp-foot button {
+    min-height: 44px;
+  }
+
+  .primary-button,
+  .sec-password-form .primary-button {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px; /* stops iOS zooming into the field */
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(2.6rem, 14vw, 3.6rem);
+    line-height: 1;
+  }
+
+  .page-heading h1 {
+    font-size: clamp(1.8rem, 9vw, 2.4rem);
+  }
+
+  .sec-card > header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .sec-password-form {
+    max-width: none;
+  }
+
+  .sec-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pricing-card:hover,
+  .feature-card:hover,
+  .stat-card:hover {
+    transform: none;
+  }
+}
+
+/* ---------- Respect reduced motion for everything added here ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .sec-skeleton,
+  .skeleton,
+  [class*="skeleton"] {
+    animation: none;
+  }
+
+  .primary-button:active,
+  .small-primary:active,
+  .line-button:active,
+  .sec-action:active,
+  .pricing-card:hover,
+  .feature-card:hover,
+  .stat-card:hover {
+    transform: none;
+  }
+}

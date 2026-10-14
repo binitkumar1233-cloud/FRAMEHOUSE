@@ -3,6 +3,7 @@ import type { ChangeEvent, FormEvent, KeyboardEvent as ReactKeyboardEvent, Synth
 import { AnimatePresence, motion } from "motion/react";
 import "./App.css";
 import "./brand.css";
+import "./polish.css";
 import { Footer as SharedFooter } from "./components/Footer";
 import { ShareMenu } from "./components/ShareMenu";
 import { Icon } from "./components/Icon";
@@ -266,15 +267,15 @@ function App() {
     } catch { return "Couldn't reach the server. Please try again."; }
   };
   const handleAuth = async (event: FormEvent<HTMLFormElement>, mode: AuthMode) => {
-    event.preventDefault(); const form = new FormData(event.currentTarget); const name = String(form.get("name") || "").trim(); const email = String(form.get("email") || "").trim(); const password = String(form.get("password") || ""); const confirm = String(form.get("confirmPassword") || "");
+    event.preventDefault(); const form = new FormData(event.currentTarget); const name = String(form.get("name") || "").trim(); const email = String(form.get("email") || "").trim(); const phone = String(form.get("phone") || "").trim(); const password = String(form.get("password") || ""); const confirm = String(form.get("confirmPassword") || "");
     if (!email || !password || (mode === "register" && (!name || password !== confirm))) { setToast(mode === "register" && password !== confirm ? "Passwords do not match." : "Please complete all required fields."); return; }
     try {
       setAuthLoading(true);
-      const response = await fetch(`${API_URL}${mode === "login" ? "/auth/login" : "/auth/register"}`, { method: "POST", headers: { "Content-Type": "application/json", ...deviceHeaders() }, body: JSON.stringify(mode === "login" ? { email, password } : { name, email, password }) });
+      const response = await fetch(`${API_URL}${mode === "login" ? "/auth/login" : "/auth/register"}`, { method: "POST", headers: { "Content-Type": "application/json", ...deviceHeaders() }, body: JSON.stringify(mode === "login" ? { email, password } : { name, email, password, ...(phone ? { phone } : {}) }) });
       const data = await response.json();
       if (!response.ok || !data.success) throw new Error(data.message || "Authentication failed");
       if (mode === "register") { setAuthMode("login"); setToast("Account created. Sign in to continue."); }
-      else if (data.otpRequired) { setOtp(data); setToast("We emailed you a verification code."); }
+      else if (data.otpRequired) { setOtp(data); setToast("We sent you a verification code."); }
       else await finishLogin(data);
     } catch (error: any) { setToast(error.message || "Authentication failed."); } finally { setAuthLoading(false); }
   };
@@ -834,6 +835,9 @@ function AuthModal({ mode, setMode, loading, submit, close, otp, onVerify, onRes
                 <label>Full name<input name="name" placeholder="Alex Morgan" autoComplete="name" required autoFocus /></label>
               )}
               <label>Email address<input name="email" type="email" placeholder="you@example.com" autoComplete="email" required autoFocus={mode === "login"} /></label>
+              {mode === "register" && (
+                <label>Mobile number (optional)<input name="phone" type="tel" placeholder="+919876543210" autoComplete="tel" /></label>
+              )}
               {passwordField("password", "Password", mode === "login" ? "current-password" : "new-password")}
               {mode === "login" && (
                 <button className="forgot-password-link" type="button" onClick={() => setShowForgotPassword(true)}>

@@ -10,6 +10,7 @@ import {
   removeDevice,
   revokeOtherSessions,
   revokeSession,
+  setPhone,
   trustThisBrowser,
 } from "../services/security";
 import type {
@@ -91,6 +92,8 @@ export default function AccountSecurity({
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [phoneInput, setPhoneInput] = useState("");
+  const [phonePassword, setPhonePassword] = useState("");
 
   const loadAll = useCallback(async () => {
     try {
@@ -193,6 +196,22 @@ export default function AccountSecurity({
     }
   };
 
+  const submitPhone = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy("phone");
+    try {
+      const result = await setPhone(phoneInput, phonePassword);
+      setPhoneInput("");
+      setPhonePassword("");
+      setToast(result.phone ? "Mobile number saved. Sign-in codes will be texted to it." : "Mobile number removed.");
+      await loadAll();
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Couldn't update your mobile number. Please try again.");
+    } finally {
+      setBusy("");
+    }
+  };
+
   const currentTrusted = devices.some((device) => device.current);
   const others = sessions.filter((session) => !session.current).length;
 
@@ -228,7 +247,7 @@ export default function AccountSecurity({
       </div>
 
       <p className="sec-intro">
-        Review where your account is signed in and every sign-in attempt. We ask for an emailed code at <strong>{overview.email}</strong> when
+        Review where your account is signed in and every sign-in attempt. We send a code to <strong>{overview.email}</strong>{overview.phone && <> and <strong>{overview.phone}</strong></>} when
         a sign-in comes from a new browser, device, IP address, or city.
       </p>
 
@@ -242,6 +261,47 @@ export default function AccountSecurity({
           {last && <small>{last.location || "Unknown location"}</small>}
         </div>
       </div>
+
+      <section className="sec-card" aria-labelledby="sec-phone">
+        <header>
+          <div>
+            <h2 id="sec-phone">Mobile number</h2>
+            <p>
+              {overview.phone
+                ? <>Sign-in codes are also texted to <strong>{overview.phone}</strong>. Leave the number empty to remove it.</>
+                : "Add a mobile number to receive sign-in codes by text as well as email."}
+            </p>
+          </div>
+        </header>
+        <form className="sec-password-form" onSubmit={submitPhone}>
+          <label>
+            Mobile number
+            <input
+              type="tel"
+              name="phone"
+              autoComplete="tel"
+              placeholder="+919876543210"
+              value={phoneInput}
+              onChange={(event) => setPhoneInput(event.target.value)}
+              required={!overview.phone}
+            />
+          </label>
+          <label>
+            Current password
+            <input
+              type="password"
+              name="phonePassword"
+              autoComplete="current-password"
+              value={phonePassword}
+              onChange={(event) => setPhonePassword(event.target.value)}
+              required
+            />
+          </label>
+          <button className="primary-button" type="submit" disabled={busy === "phone"}>
+            {busy === "phone" ? "Saving…" : overview.phone && !phoneInput.trim() ? "Remove number" : "Save number"}
+          </button>
+        </form>
+      </section>
 
       <section className="sec-card" aria-labelledby="sec-password">
         <header>

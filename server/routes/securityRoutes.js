@@ -6,6 +6,7 @@ const TrustedDevice = require("../models/TrustedDevice");
 const UserSession = require("../models/UserSession");
 const User = require("../models/User");
 const security = require("../services/loginSecurity");
+const { normalizePhone, maskPhone } = require("../services/sms");
 const asyncHandler = require("../utils/asyncHandler");
 
 const router = express.Router();
@@ -35,6 +36,7 @@ router.get(
       theme: req.user.theme,
       themeSource: req.user.themeSource || "auto",
       email: req.user.email,
+      phone: req.user.phone ? maskPhone(req.user.phone) : null,
       lastLogin,
       failedLast30Days: failed,
       activeSessions: sessions,
@@ -66,6 +68,33 @@ router.put(
     await req.user.save();
 
     res.json({ success: true, theme: req.user.theme, themeSource: req.user.themeSource });
+  })
+);
+
+// ---------- mobile number ----------
+
+// An empty phone removes the number. Changing it needs the current password.
+router.put(
+  "/phone",
+  asyncHandler(async (req, res) => {
+    const { phone, currentPassword } = req.body;
+    if (typeof currentPassword !== "string") {
+      return res.status(400).json({ success: false, message: "Enter your current password." });
+    }
+
+    const remove = typeof phone !== "string" || phone.trim() === "";
+    const normalized = remove ? null : normalizePhone(phone);
+    if (!remove && !normalized) {
+      return res.status(400).json({ success: false, message: "Enter the mobile number with country code, like +919876543210." });
+    }
+
+    const user = await User.findById(req.user._id).select("+password");
+    if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
+      return res.status(401).json({ success: false, message: "Your current password is incorrect." });
+    }
+
+    await User.updateOne({ _id: user._id }, normalized ? { $set: { phone: normalized } } : { $unset: { phone: "" } });
+    res.json({ success: true, phone: normalized ? maskPhone(normalized) : null });
   })
 );
 
