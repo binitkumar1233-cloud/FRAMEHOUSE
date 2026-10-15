@@ -177,7 +177,7 @@ export function useCheckout({
 
   const chooserUi = chooser ? (
     <div className="modal-backdrop" key="provider-chooser" onClick={() => setChooser(null)}>
-      <div className="confirming-card" role="dialog" aria-label="Choose payment method" onClick={(event) => event.stopPropagation()} style={{ display: "grid", gap: 12, minWidth: 260 }}>
+      <div className="pay-dialog" role="dialog" aria-label="Choose payment method" onClick={(event) => event.stopPropagation()}>
         <strong>Choose payment method</strong>
         {chooser.options.map((option) => (
           <button
@@ -199,7 +199,7 @@ export function useCheckout({
 
   const upiUi = upi ? (
     <div className="modal-backdrop" key="upi-checkout" onClick={() => !upi.saving && setUpi(null)}>
-      <div className="confirming-card" role="dialog" aria-label="Pay by UPI" onClick={(event) => event.stopPropagation()} style={{ display: "grid", gap: 12, width: "min(92vw, 380px)" }}>
+      <div className="pay-dialog" role="dialog" aria-label="Pay by UPI" onClick={(event) => event.stopPropagation()}>
         {upi.done ? (
           <>
             <strong>Payment submitted</strong>

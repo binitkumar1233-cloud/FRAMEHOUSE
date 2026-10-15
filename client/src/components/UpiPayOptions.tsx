@@ -34,7 +34,7 @@ export function UpiPayOptions({ link }: { link: string }) {
       )}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         {APPS.map((app) => (
-          <a key={app.name} className="line-button" href={`${app.scheme}${query}`} style={{ textAlign: "center" }}>
+          <a key={app.name} className="line-button pay-app" href={`${app.scheme}${query}`}>
             {app.name}
           </a>
         ))}
