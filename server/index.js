@@ -4,6 +4,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
 
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const http = require("http");
 const { Server } = require("socket.io");
 
@@ -21,7 +23,33 @@ const { startSubscriptionJobs } = require("./services/subscriptionService");
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors());
+if (process.env.TRUST_PROXY === "true") app.set("trust proxy", 1);
+
+// Comma-separated list of allowed front-end origins, e.g.
+// CLIENT_URL=http://localhost:5173,https://framehouse.example
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",").map((origin) => origin.trim().replace(/\/+$/, ""))
+  : process.env.NODE_ENV === "production"
+  ? false
+  : "*";
+if (allowedOrigins === false) console.warn("CLIENT_URL is not set: cross-origin browser requests are blocked.");
+
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+app.use(cors({ origin: allowedOrigins === false ? false : allowedOrigins }));
+
+const limiter = (windowMs, limit, message) =>
+  rateLimit({
+    windowMs,
+    limit,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message },
+  });
+
+app.use("/api", limiter(60 * 1000, 300, "Too many requests. Please slow down."));
+app.use("/api/auth", limiter(15 * 60 * 1000, 40, "Too many attempts. Please wait a few minutes."));
+// Stops passcode guessing and room-ID enumeration.
+app.use("/api/meetings/:roomId/join", limiter(10 * 60 * 1000, 15, "Too many join attempts. Please wait a few minutes."));
 // Keep the raw body too: Razorpay webhook signatures are computed over it.
 app.use(express.json({ verify: (req, _res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ extended: true }));
@@ -69,12 +97,6 @@ const subscriptionRoutes = require("./routes/subscriptionRoutes");
 
 app.use("/api/subscription", subscriptionRoutes);
 
-
-// Comma-separated list of allowed front-end origins, e.g.
-// CLIENT_URL=http://localhost:5173,https://framehouse.example
-const allowedOrigins = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(",").map((origin) => origin.trim())
-  : "*";
 
 const io = new Server(server, {
   cors: {

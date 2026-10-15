@@ -319,7 +319,9 @@ const registerMeetingSockets = (io) => {
 
     socket.on("signal", ({ to, data } = {}) => {
       const ctx = current();
-      if (!ctx || !to || !data || !ctx.room.peers.has(to)) return;
+      if (!ctx || typeof to !== "string" || !data || typeof data !== "object" || !ctx.room.peers.has(to)) return;
+      if (!["offer", "answer", "ice-candidate"].includes(data.type)) return;
+      if (JSON.stringify(data).length > 20000) return;
       io.to(to).emit("signal", { from: socket.id, data });
     });
 
