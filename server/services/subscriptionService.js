@@ -233,6 +233,8 @@ const createOrder = async (user, q) => {
       mode = "test";
       orderId = `test_order_${crypto.randomBytes(8).toString("hex")}`;
     } else if (error?.statusCode === 401) {
+      razorpayKeysRejectedAt = Date.now();
+      razorpayKeysCheckedAt = Date.now();
       console.error("[payments] Razorpay rejected RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET. Update them in server/.env and restart.");
       throw new SubscriptionError("Online payments aren't available right now. Please try again later.", 503, "payments-unavailable");
     } else {
@@ -308,8 +310,29 @@ const getUpiConfig = async () => {
   return { upiId, payee };
 };
 
+// Razorpay is only offered while its keys actually work. A rejected key pair
+// hides it for a few minutes so customers see the methods that do work.
+let razorpayKeysRejectedAt = 0;
+let razorpayKeysCheckedAt = 0;
+const KEY_CHECK_MS = 5 * 60 * 1000;
+
+const razorpayUsable = async () => {
+  if (!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)) return false;
+  if (Date.now() - razorpayKeysCheckedAt > KEY_CHECK_MS) {
+    razorpayKeysCheckedAt = Date.now();
+    try {
+      await razorpay().orders.all({ count: 1 });
+      razorpayKeysRejectedAt = 0;
+    } catch (error) {
+      if (error?.statusCode === 401) razorpayKeysRejectedAt = Date.now();
+      // Other errors (network, rate limit) don't prove the keys are bad.
+    }
+  }
+  return !razorpayKeysRejectedAt;
+};
+
 const availableProviders = async () => ({
-  razorpay: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
+  razorpay: await razorpayUsable(),
   stripe: Boolean(process.env.STRIPE_SECRET_KEY),
   upi: Boolean((await getUpiConfig()).upiId),
   test: testPaymentsAllowed(),
