@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import "./App.css";
 import "./brand.css";
 import "./polish.css";
+import "./motion.css";
 import { Footer as SharedFooter } from "./components/Footer";
 import { ShareMenu } from "./components/ShareMenu";
 import { Icon } from "./components/Icon";

@@ -1,0 +1,254 @@
+/* Motion layer: refined, GPU-friendly animation on top of the existing styles.
+   Loaded last. Everything here is disabled for people who prefer reduced motion. */
+
+:root {
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --glow: 0 18px 50px -18px var(--primary-glow);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 84px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--primary) 45%, transparent);
+  color: var(--text);
+}
+
+/* Slim, on-brand scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--primary) 50%, transparent) transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary-hover);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ---------- Page and content entrance ---------- */
+@keyframes mo-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mo-pop {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mo-sheen {
+  from { transform: translateX(-120%) skewX(-18deg); }
+  to { transform: translateX(260%) skewX(-18deg); }
+}
+
+@keyframes mo-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 0%, transparent); }
+  50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--primary) 18%, transparent); }
+}
+
+/* Staggered reveal for grids of cards */
+.video-grid > *,
+.pricing-grid > *,
+.pricing-grid-4 > *,
+.meetings-grid > *,
+.meeting-history-grid > *,
+.info-grid > * {
+  animation: mo-rise 0.6s var(--ease-out) backwards;
+}
+
+.video-grid > *:nth-child(1), .pricing-grid > *:nth-child(1), .pricing-grid-4 > *:nth-child(1), .meetings-grid > *:nth-child(1) { animation-delay: 0.02s; }
+.video-grid > *:nth-child(2), .pricing-grid > *:nth-child(2), .pricing-grid-4 > *:nth-child(2), .meetings-grid > *:nth-child(2) { animation-delay: 0.08s; }
+.video-grid > *:nth-child(3), .pricing-grid > *:nth-child(3), .pricing-grid-4 > *:nth-child(3), .meetings-grid > *:nth-child(3) { animation-delay: 0.14s; }
+.video-grid > *:nth-child(4), .pricing-grid > *:nth-child(4), .pricing-grid-4 > *:nth-child(4) { animation-delay: 0.2s; }
+.video-grid > *:nth-child(5) { animation-delay: 0.26s; }
+.video-grid > *:nth-child(6) { animation-delay: 0.32s; }
+.video-grid > *:nth-child(n + 7) { animation-delay: 0.38s; }
+
+/* ---------- Cards: lift, glow, edge light ---------- */
+.video-card,
+.pricing-card,
+.stat-card,
+.meeting-card,
+.meeting-history-card,
+.profile-card,
+.sec-card {
+  transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out), border-color 0.3s var(--ease-out);
+  will-change: transform;
+}
+
+@media (hover: hover) {
+  .video-card:hover,
+  .pricing-card:hover,
+  .meeting-card:hover,
+  .meeting-history-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--glow), 0 2px 0 0 color-mix(in srgb, var(--primary-hover) 25%, transparent) inset;
+    border-color: color-mix(in srgb, var(--primary) 55%, var(--line-strong));
+  }
+
+  .video-card:hover img,
+  .video-card:hover video {
+    transform: scale(1.06);
+  }
+
+  .stat-card:hover,
+  .sec-card:hover,
+  .profile-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--glow);
+  }
+}
+
+.video-card img,
+.video-card video {
+  transition: transform 0.7s var(--ease-out);
+}
+
+/* ---------- Buttons: sheen sweep and spring press ---------- */
+.primary-button,
+.small-primary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.primary-button::after,
+.small-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: translateX(-120%) skewX(-18deg);
+  pointer-events: none;
+  z-index: -1;
+}
+
+@media (hover: hover) {
+  .primary-button:hover:not(:disabled)::after,
+  .small-primary:hover:not(:disabled)::after {
+    animation: mo-sheen 0.9s var(--ease-out);
+  }
+
+  .primary-button:hover:not(:disabled),
+  .small-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px -12px var(--primary-glow);
+  }
+}
+
+.primary-button:active:not(:disabled),
+.small-primary:active:not(:disabled),
+.line-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  transition-duration: 0.08s;
+}
+
+.primary-button:disabled,
+.small-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- Dialogs and toasts ---------- */
+.modal-backdrop {
+  animation: fade-in 0.25s var(--ease-out) backwards;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.auth-modal,
+.confirming-card {
+  animation: mo-pop 0.45s var(--ease-spring) backwards;
+}
+
+.toast {
+  box-shadow: 0 18px 50px -18px rgba(0, 0, 0, 0.55);
+}
+
+/* ---------- Navigation ---------- */
+.nav-links a,
+.nav-links button,
+.footer a {
+  position: relative;
+}
+
+.nav-links a::after,
+.footer a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--brand-gradient);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--ease-out);
+}
+
+.nav-links a:hover::after,
+.nav-links a[aria-current]::after,
+.nav-links a.active::after,
+.footer a:hover::after {
+  transform: scaleX(1);
+}
+
+/* ---------- Loading skeletons: one smooth shimmer ---------- */
+.skeleton,
+[class*="skeleton"] {
+  background-image: linear-gradient(
+    100deg,
+    transparent 20%,
+    color-mix(in srgb, var(--text) 9%, transparent) 50%,
+    transparent 80%
+  );
+  background-size: 220% 100%;
+  animation: polish-shimmer 1.5s linear infinite;
+}
+
+/* Gentle attention pulse for live indicators */
+.live-badge,
+.recording-badge {
+  animation: mo-glow-pulse 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  .video-grid > *,
+  .pricing-grid > *,
+  .pricing-grid-4 > *,
+  .meetings-grid > *,
+  .meeting-history-grid > *,
+  .info-grid > *,
+  .modal-backdrop,
+  .auth-modal,
+  .confirming-card,
+  .live-badge,
+  .recording-badge {
+    animation: none;
+  }
+
+  .video-card,
+  .pricing-card,
+  .stat-card,
+  .meeting-card,
+  .meeting-history-card,
+  .profile-card,
+  .sec-card,
+  .video-card img,
+  .video-card video {
+    transition: none;
+    transform: none !important;
+  }
+
+  .primary-button::after,
+  .small-primary::after {
+    display: none;
+  }
+}
