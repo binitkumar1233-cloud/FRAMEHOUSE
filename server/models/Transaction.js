@@ -42,10 +42,11 @@ const transactionSchema = new mongoose.Schema(
     // "razorpay" for real checkout, "test" for the built-in test checkout.
     mode: {
       type: String,
-      enum: ["razorpay", "stripe", "test"],
+      enum: ["razorpay", "stripe", "upi", "test"],
       default: "razorpay",
     },
     stripeSessionId: { type: String, index: true, sparse: true },
+    upiReference: { type: String, index: true, sparse: true },
     razorpayOrderId: { type: String, index: true },
     razorpayPaymentId: String,
     razorpaySignature: String,
@@ -53,7 +54,7 @@ const transactionSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["created", "paid", "failed", "cancelled", "expired", "refunded"],
+      enum: ["created", "pending", "paid", "failed", "cancelled", "expired", "refunded"],
       default: "created",
       index: true,
     },
@@ -64,7 +65,7 @@ const transactionSchema = new mongoose.Schema(
     // How the payment was confirmed: checkout callback, webhook, reconciliation or test.
     verifiedVia: {
       type: String,
-      enum: ["checkout", "webhook", "reconcile", "test"],
+      enum: ["checkout", "webhook", "reconcile", "test", "admin"],
     },
 
     // Subscription period this payment bought.

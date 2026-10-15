@@ -301,6 +301,7 @@ const clientBaseUrl = () =>
 const availableProviders = () => ({
   razorpay: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
   stripe: Boolean(process.env.STRIPE_SECRET_KEY),
+  upi: Boolean(process.env.UPI_ID),
   test: testPaymentsAllowed(),
 });
 
@@ -421,7 +422,7 @@ const activateTransaction = async (txnId, { paymentId, signature, via, method })
   const now = new Date();
 
   const claimed = await Transaction.findOneAndUpdate(
-    { _id: txnId, status: { $in: ["created", "failed", "cancelled", "expired"] } },
+    { _id: txnId, status: { $in: ["created", "pending", "failed", "cancelled", "expired"] } },
     {
       $set: {
         status: "paid",

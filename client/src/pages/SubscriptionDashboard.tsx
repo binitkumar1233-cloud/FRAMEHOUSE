@@ -33,6 +33,7 @@ const STATUS_LABEL: Record<SubscriptionStatus["status"], string> = {
 const TXN_STATUS: Record<BillingTransaction["status"], string> = {
   paid: "Paid",
   created: "Pending",
+  pending: "Awaiting verification",
   failed: "Failed",
   cancelled: "Cancelled",
   expired: "Not completed",

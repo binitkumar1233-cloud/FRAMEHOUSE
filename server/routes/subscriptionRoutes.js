@@ -236,6 +236,119 @@ router.post(
   })
 );
 
+router.post(
+  "/checkout/upi",
+  handle(async (req, res) => {
+    const upiId = process.env.UPI_ID;
+    if (!upiId) return res.status(503).json({ success: false, code: "payments-unavailable", message: "UPI payments aren't available right now." });
+
+    const q = await service.quote(req.user, req.body?.plan, req.body?.cycle);
+    let txn = await Transaction.findOne({
+      user: req.user._id,
+      mode: "upi",
+      status: "created",
+      plan: q.plan,
+      cycle: q.cycle,
+      amount: q.amount,
+      createdAt: { $gte: new Date(Date.now() - 60 * 60 * 1000) },
+    });
+    if (!txn) {
+      txn = await Transaction.create({
+        user: req.user._id,
+        plan: q.plan,
+        cycle: q.cycle,
+        action: q.action,
+        amount: q.amount,
+        listPrice: q.listPrice,
+        credit: q.credit,
+        currency: q.currency,
+        mode: "upi",
+        status: "created",
+        periodStart: q.periodStart,
+        periodEnd: q.periodEnd,
+      });
+    }
+
+    const payee = process.env.UPI_PAYEE_NAME || "Framehouse";
+    const note = `Framehouse ${q.plan}`;
+    const link = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payee)}&am=${q.amount}&cu=INR&tn=${encodeURIComponent(note)}`;
+    res.status(201).json({ success: true, transactionId: txn._id.toString(), upiId, payee, amount: q.amount, link, note });
+  })
+);
+
+// The customer says they've paid and gives the UPI reference (UTR). An admin approves it.
+router.post(
+  "/upi/submit",
+  handle(async (req, res) => {
+    const { transactionId } = req.body || {};
+    const utr = String(req.body?.utr || "").trim().toUpperCase();
+    if (!mongoose.isValidObjectId(transactionId)) return res.status(404).json({ success: false, message: "Payment order not found." });
+    if (!/^[A-Z0-9]{8,30}$/.test(utr)) {
+      return res.status(400).json({ success: false, code: "invalid-reference", message: "Enter the UPI reference / UTR number from your payment app (8-30 letters and digits)." });
+    }
+
+    const txn = await Transaction.findOne({ _id: transactionId, user: req.user._id, mode: "upi" });
+    if (!txn) return res.status(404).json({ success: false, message: "Payment order not found." });
+    if (txn.status === "paid") return res.json({ success: true, transaction: serializeTxn(txn) });
+
+    if (await Transaction.exists({ upiReference: utr, _id: { $ne: txn._id } })) {
+      return res.status(409).json({ success: false, code: "duplicate-reference", message: "This reference number was already submitted." });
+    }
+
+    txn.upiReference = utr;
+    txn.razorpayPaymentId = `upi_${utr}`;
+    txn.status = "pending";
+    txn.failureReason = undefined;
+    await txn.save();
+    res.json({ success: true, transaction: serializeTxn(txn), message: "Thanks! We'll activate your plan as soon as the payment is verified." });
+  })
+);
+
+const requireAdmin = (req, res, next) =>
+  req.user?.role === "admin" ? next() : res.status(403).json({ success: false, message: "Admin access required" });
+
+router.get(
+  "/admin/upi",
+  requireAdmin,
+  handle(async (req, res) => {
+    const items = await Transaction.find({ mode: "upi", status: "pending" }).sort({ createdAt: 1 }).limit(100).populate("user", "name email").lean();
+    res.json({
+      success: true,
+      payments: items.map((t) => ({
+        id: t._id.toString(),
+        user: t.user ? { name: t.user.name, email: t.user.email } : null,
+        plan: t.plan,
+        cycle: t.cycle,
+        amount: t.amount,
+        reference: t.upiReference,
+        createdAt: t.createdAt,
+      })),
+    });
+  })
+);
+
+router.post(
+  "/admin/upi/:id/approve",
+  requireAdmin,
+  handle(async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(404).json({ success: false, message: "Not found" });
+    const txn = await Transaction.findOne({ _id: req.params.id, mode: "upi", status: "pending" });
+    if (!txn) return res.status(404).json({ success: false, message: "Pending payment not found." });
+    await service.activateTransaction(txn._id, { paymentId: `upi_${txn.upiReference}`, signature: "upi", via: "admin", method: "upi" });
+    res.json({ success: true });
+  })
+);
+
+router.post(
+  "/admin/upi/:id/reject",
+  requireAdmin,
+  handle(async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(404).json({ success: false, message: "Not found" });
+    await Transaction.updateOne({ _id: req.params.id, mode: "upi", status: "pending" }, { $set: { status: "failed", failureReason: "UPI payment couldn't be verified" } });
+    res.json({ success: true });
+  })
+);
+
 const findUserTxn = async (userId, orderId) => {
   if (!orderId || typeof orderId !== "string") return null;
   return Transaction.findOne({ user: userId, razorpayOrderId: orderId });

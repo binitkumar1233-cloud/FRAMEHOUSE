@@ -11,9 +11,18 @@ import {
   reportFailed,
   startCheckout,
   startStripeCheckout,
+  startUpiCheckout,
+  submitUpiReference,
   verifyPayment,
 } from "../services/billing";
-import type { CheckoutSession, Cycle, PlanName, SubscriptionStatus } from "../services/billing";
+import type { CheckoutSession, Cycle, PlanName, SubscriptionStatus, UpiSession } from "../services/billing";
+
+type Provider = "razorpay" | "stripe" | "upi";
+const PROVIDER_LABEL: Record<Provider, string> = {
+  razorpay: "UPI, cards & netbanking (Razorpay)",
+  stripe: "Pay with card (Stripe)",
+  upi: "Pay by UPI app (manual confirmation)",
+};
 
 declare global {
   interface Window {
@@ -37,7 +46,8 @@ export function useCheckout({
   const [busyKey, setBusyKey] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [testSession, setTestSession] = useState<CheckoutSession | null>(null);
-  const [chooser, setChooser] = useState<{ plan: PlanName; cycle: Cycle } | null>(null);
+  const [chooser, setChooser] = useState<{ plan: PlanName; cycle: Cycle; options: Provider[] } | null>(null);
+  const [upi, setUpi] = useState<{ session: UpiSession; utr: string; saving: boolean; error: string; done: boolean } | null>(null);
 
   const activeMessage = (subscription: SubscriptionStatus) =>
     `${subscription.plan} plan is active until ${formatDate(subscription.expiryDate)}.`;
@@ -67,24 +77,33 @@ export function useCheckout({
   }, []);
 
   const purchase = useCallback(
-    async (plan: PlanName, cycle: Cycle, provider?: "razorpay" | "stripe") => {
+    async (plan: PlanName, cycle: Cycle, provider?: Provider) => {
       if (busyKey) return; // one checkout at a time
       setBusyKey(`${plan}-${cycle}`);
 
       try {
         let chosen = provider;
         if (!chosen) {
-          const providers = await getProviders().catch(() => ({ razorpay: true, stripe: false, test: false }));
-          if (providers.stripe && (providers.razorpay || providers.test)) {
-            setChooser({ plan, cycle });
+          const providers = await getProviders().catch(() => ({ razorpay: true, stripe: false, upi: false, test: false }));
+          const options: Provider[] = [];
+          if (providers.razorpay || providers.test || (!providers.stripe && !providers.upi)) options.push("razorpay");
+          if (providers.stripe) options.push("stripe");
+          if (providers.upi) options.push("upi");
+          if (options.length > 1) {
+            setChooser({ plan, cycle, options });
             return;
           }
-          if (providers.stripe) chosen = "stripe";
+          chosen = options[0];
         }
 
         if (chosen === "stripe") {
           const { url } = await startStripeCheckout(plan, cycle);
           window.location.assign(url);
+          return;
+        }
+
+        if (chosen === "upi") {
+          setUpi({ session: await startUpiCheckout(plan, cycle), utr: "", saving: false, error: "", done: false });
           return;
         }
 
@@ -156,27 +175,65 @@ export function useCheckout({
     <div className="modal-backdrop" key="provider-chooser" onClick={() => setChooser(null)}>
       <div className="confirming-card" role="dialog" aria-label="Choose payment method" onClick={(event) => event.stopPropagation()} style={{ display: "grid", gap: 12, minWidth: 260 }}>
         <strong>Choose payment method</strong>
-        <button
-          className="primary-button"
-          onClick={() => {
-            const { plan, cycle } = chooser;
-            setChooser(null);
-            void purchase(plan, cycle, "stripe");
-          }}
-        >
-          Pay with card (Stripe)
-        </button>
-        <button
-          className="primary-button"
-          onClick={() => {
-            const { plan, cycle } = chooser;
-            setChooser(null);
-            void purchase(plan, cycle, "razorpay");
-          }}
-        >
-          UPI, cards &amp; netbanking (Razorpay)
-        </button>
+        {chooser.options.map((option) => (
+          <button
+            key={option}
+            className="primary-button"
+            onClick={() => {
+              const { plan, cycle } = chooser;
+              setChooser(null);
+              void purchase(plan, cycle, option);
+            }}
+          >
+            {PROVIDER_LABEL[option]}
+          </button>
+        ))}
         <button className="text-button" onClick={() => setChooser(null)}>Cancel</button>
+      </div>
+    </div>
+  ) : null;
+
+  const upiUi = upi ? (
+    <div className="modal-backdrop" key="upi-checkout" onClick={() => !upi.saving && setUpi(null)}>
+      <div className="confirming-card" role="dialog" aria-label="Pay by UPI" onClick={(event) => event.stopPropagation()} style={{ display: "grid", gap: 12, width: "min(92vw, 380px)" }}>
+        {upi.done ? (
+          <>
+            <strong>Payment submitted</strong>
+            <p>Thanks! Your plan will be activated as soon as we verify the payment. You'll see it on your subscription page.</p>
+            <button className="primary-button" onClick={() => setUpi(null)}>Done</button>
+          </>
+        ) : (
+          <>
+            <strong>Pay ₹{upi.session.amount} by UPI</strong>
+            <p style={{ margin: 0 }}>Pay to <b>{upi.session.upiId}</b> ({upi.session.payee}).</p>
+            <a className="primary-button" href={upi.session.link} style={{ textAlign: "center" }}>Open UPI app</a>
+            <p style={{ margin: 0, fontSize: 13, opacity: 0.8 }}>After paying, enter the UPI reference / UTR number from your payment app.</p>
+            <input
+              value={upi.utr}
+              onChange={(event) => setUpi({ ...upi, utr: event.target.value, error: "" })}
+              placeholder="UPI reference / UTR number"
+              aria-label="UPI reference number"
+              autoCapitalize="characters"
+            />
+            {upi.error && <p role="alert" style={{ color: "#ff8b95", margin: 0 }}>{upi.error}</p>}
+            <button
+              className="primary-button"
+              disabled={upi.saving || !upi.utr.trim()}
+              onClick={async () => {
+                setUpi({ ...upi, saving: true, error: "" });
+                try {
+                  await submitUpiReference(upi.session.transactionId, upi.utr);
+                  setUpi({ ...upi, saving: false, done: true });
+                } catch (error) {
+                  setUpi({ ...upi, saving: false, error: error instanceof Error ? error.message : "Couldn't submit. Try again." });
+                }
+              }}
+            >
+              {upi.saving ? "Submitting…" : "I've paid"}
+            </button>
+            <button className="text-button" onClick={() => setUpi(null)}>Cancel</button>
+          </>
+        )}
       </div>
     </div>
   ) : null;
@@ -198,7 +255,7 @@ export function useCheckout({
       }}
       onClose={() => setTestSession(null)}
     />
-  ) : chooserUi;
+  ) : upiUi ?? chooserUi;
 
   return { purchase, busyKey, confirming, checkoutUi };
 }

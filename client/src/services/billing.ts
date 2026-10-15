@@ -71,9 +71,9 @@ export type BillingTransaction = {
   listPrice: number;
   credit: number;
   currency: string;
-  status: "created" | "paid" | "failed" | "cancelled" | "expired" | "refunded";
+  status: "created" | "pending" | "paid" | "failed" | "cancelled" | "expired" | "refunded";
   failureReason: string | null;
-  mode: "razorpay" | "stripe" | "test";
+  mode: "razorpay" | "stripe" | "upi" | "test";
   orderId: string | null;
   paymentId: string | null;
   method: string | null;
@@ -142,7 +142,14 @@ export const getQuote = (plan: PlanName, cycle: Cycle) =>
   request<{ quote: Quote }>(`/quote?plan=${encodeURIComponent(plan)}&cycle=${encodeURIComponent(cycle)}`).then((d) => d.quote);
 export const startCheckout = (plan: PlanName, cycle: Cycle) => post<CheckoutSession>("/checkout", { plan, cycle });
 export const getProviders = () =>
-  request<{ providers: { razorpay: boolean; stripe: boolean; test: boolean } }>("/providers", {}, false).then((d) => d.providers);
+  request<{ providers: { razorpay: boolean; stripe: boolean; upi: boolean; test: boolean } }>("/providers", {}, false).then((d) => d.providers);
+export type UpiSession = { transactionId: string; upiId: string; payee: string; amount: number; link: string; note: string };
+export const startUpiCheckout = (plan: PlanName, cycle: Cycle) => post<UpiSession>("/checkout/upi", { plan, cycle });
+export const submitUpiReference = (transactionId: string, utr: string) =>
+  post<{ message?: string }>("/upi/submit", { transactionId, utr });
+export type PendingUpi = { id: string; user: { name: string; email: string } | null; plan: string; cycle: string; amount: number; reference: string; createdAt: string };
+export const getPendingUpi = () => request<{ payments: PendingUpi[] }>("/admin/upi").then((d) => d.payments);
+export const decideUpi = (id: string, decision: "approve" | "reject") => post(`/admin/upi/${id}/${decision}`);
 export const startStripeCheckout = (plan: PlanName, cycle: Cycle) => post<{ url: string }>("/checkout/stripe", { plan, cycle });
 export const confirmStripe = (sessionId: string) =>
   post<{ subscription: SubscriptionStatus; transaction: BillingTransaction; alreadyProcessed: boolean }>("/stripe/confirm", { sessionId });
