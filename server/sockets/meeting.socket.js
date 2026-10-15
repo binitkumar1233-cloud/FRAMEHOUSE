@@ -186,6 +186,8 @@ const registerMeetingSockets = (io) => {
       }
     }
     rooms.delete(roomId);
+    // Privacy: chat messages and shared files are erased when the meeting ends.
+    ChatMessage.deleteMany({ roomId }).catch((error) => console.error("Chat cleanup failed:", error.message));
   };
 
   const updateRoomMeta = (roomId, patch) => {

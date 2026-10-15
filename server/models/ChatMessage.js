@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { encrypt, decrypt } = require("../utils/chatCrypto");
 
 const attachmentSchema = new mongoose.Schema(
   {
@@ -6,7 +7,7 @@ const attachmentSchema = new mongoose.Schema(
     mimeType: String,
     size: Number,
     // Base64 data URL. Size is capped by the socket handler.
-    dataUrl: String,
+    dataUrl: { type: String, set: encrypt, get: decrypt },
   },
   { _id: false }
 );
@@ -34,8 +35,9 @@ const chatMessageSchema = new mongoose.Schema(
     },
     text: {
       type: String,
-      default: "",
-      maxlength: 2000,
+      default: "", // length is capped by the socket handler (ciphertext is longer)
+      set: encrypt,
+      get: decrypt,
     },
     type: {
       type: String,
@@ -44,7 +46,10 @@ const chatMessageSchema = new mongoose.Schema(
     },
     attachment: attachmentSchema,
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { getters: true }, toObject: { getters: true } }
 );
+
+// Safety net: chat is deleted when a meeting ends, and never kept past 24 hours.
+chatMessageSchema.index({ createdAt: 1 }, { expireAfterSeconds: 24 * 60 * 60 });
 
 module.exports = mongoose.model("ChatMessage", chatMessageSchema);
