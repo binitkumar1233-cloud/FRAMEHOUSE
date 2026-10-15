@@ -86,9 +86,12 @@ export function useCheckout({
         if (!chosen) {
           const providers = await getProviders().catch(() => ({ razorpay: true, stripe: false, upi: false, test: false }));
           const options: Provider[] = [];
-          if (providers.razorpay || providers.test || (!providers.stripe && !providers.upi)) options.push("razorpay");
+          if (providers.razorpay || providers.test) options.push("razorpay");
           if (providers.stripe) options.push("stripe");
           if (providers.upi) options.push("upi");
+          if (options.length === 0) {
+            throw new BillingError("Payments aren't set up yet. The site owner needs to add a payment method (UPI ID, Razorpay or Stripe) in the Admin Panel.", 503);
+          }
           if (options.length > 1) {
             setChooser({ plan, cycle, options });
             return;
