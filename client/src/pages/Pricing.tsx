@@ -153,7 +153,7 @@ export function Pricing({
       </motion.div>
 
       <p className="payment-caption">
-        Payments are processed securely by Razorpay. Upgrades use the unused value of your current plan as credit. Plans don't renew automatically.
+        Payments are processed securely by Razorpay or Stripe. Upgrades use the unused value of your current plan as credit. Plans don't renew automatically.
       </p>
 
       <Reveal as="section" className="plan-compare" aria-label="Compare plans">

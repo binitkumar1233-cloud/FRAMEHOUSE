@@ -73,7 +73,7 @@ export type BillingTransaction = {
   currency: string;
   status: "created" | "paid" | "failed" | "cancelled" | "expired" | "refunded";
   failureReason: string | null;
-  mode: "razorpay" | "test";
+  mode: "razorpay" | "stripe" | "test";
   orderId: string | null;
   paymentId: string | null;
   method: string | null;
@@ -141,6 +141,11 @@ export const getBilling = () => request<{ transactions: BillingTransaction[] }>(
 export const getQuote = (plan: PlanName, cycle: Cycle) =>
   request<{ quote: Quote }>(`/quote?plan=${encodeURIComponent(plan)}&cycle=${encodeURIComponent(cycle)}`).then((d) => d.quote);
 export const startCheckout = (plan: PlanName, cycle: Cycle) => post<CheckoutSession>("/checkout", { plan, cycle });
+export const getProviders = () =>
+  request<{ providers: { razorpay: boolean; stripe: boolean; test: boolean } }>("/providers", {}, false).then((d) => d.providers);
+export const startStripeCheckout = (plan: PlanName, cycle: Cycle) => post<{ url: string }>("/checkout/stripe", { plan, cycle });
+export const confirmStripe = (sessionId: string) =>
+  post<{ subscription: SubscriptionStatus; transaction: BillingTransaction; alreadyProcessed: boolean }>("/stripe/confirm", { sessionId });
 export const payTestOrder = (orderId: string, outcome: "success" | "failed", method: string) =>
   post<{ subscription: SubscriptionStatus; transaction: BillingTransaction }>("/test-pay", { orderId, outcome, method });
 export const reportFailed = (orderId: string, reason: string) => post("/payment-failed", { orderId, reason }).catch(() => undefined);

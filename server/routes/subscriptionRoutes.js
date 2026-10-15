@@ -38,7 +38,7 @@ const serializeTxn = (txn) => ({
   status: txn.status,
   failureReason: txn.failureReason || null,
   mode: txn.mode || "razorpay",
-  orderId: txn.razorpayOrderId || null,
+  orderId: txn.razorpayOrderId || txn.stripeSessionId || null,
   paymentId: txn.razorpayPaymentId || null,
   method: txn.method || null,
   periodStart: txn.periodStart || null,
@@ -95,6 +95,43 @@ router.post(
       await service.activateTransaction(txn._id, { paymentId: payment.id, via: "webhook", method: payment.method });
     } else if (txn && req.body.event === "payment.failed" && txn.status === "created") {
       await Transaction.updateOne({ _id: txn._id, status: "created" }, { $set: { status: "failed", failureReason: payment.error_description || "Payment failed" } });
+    }
+
+    res.json({ success: true });
+  })
+);
+
+router.get("/providers", (req, res) => {
+  res.json({ success: true, providers: service.availableProviders() });
+});
+
+// Stripe server-to-server notifications. Configure
+// https://<your-api>/api/subscription/stripe-webhook in Stripe with STRIPE_WEBHOOK_SECRET.
+router.post(
+  "/stripe-webhook",
+  handle(async (req, res) => {
+    const client = service.stripe();
+    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+    const signature = req.headers["stripe-signature"];
+    if (!client || !secret || !signature || !req.rawBody) return res.status(400).json({ success: false });
+
+    let event;
+    try {
+      event = client.webhooks.constructEvent(req.rawBody, signature, secret);
+    } catch {
+      return res.status(400).json({ success: false });
+    }
+
+    const session = event.data?.object;
+    if (session?.id && ["checkout.session.completed", "checkout.session.async_payment_succeeded"].includes(event.type)) {
+      try {
+        await service.settleStripeSession(session.id, { via: "webhook" });
+      } catch (error) {
+        if (!(error instanceof service.SubscriptionError)) throw error;
+        console.warn("[payments] Stripe webhook not applied:", error.message);
+      }
+    } else if (session?.id && event.type === "checkout.session.expired") {
+      await Transaction.updateOne({ stripeSessionId: session.id, status: "created" }, { $set: { status: "expired", failureReason: "Checkout expired" } });
     }
 
     res.json({ success: true });
@@ -173,6 +210,29 @@ router.post(
       quote: q,
       prefill: { name: req.user.name, email: req.user.email },
     });
+  })
+);
+
+router.post(
+  "/checkout/stripe",
+  handle(async (req, res) => {
+    const q = await service.quote(req.user, req.body?.plan, req.body?.cycle);
+    const { url } = await service.createStripeSession(req.user, q);
+    res.status(201).json({ success: true, url });
+  })
+);
+
+// Called when Stripe sends the customer back to the site.
+router.post(
+  "/stripe/confirm",
+  handle(async (req, res) => {
+    const sessionId = req.body?.sessionId;
+    if (!sessionId || typeof sessionId !== "string" || !sessionId.startsWith("cs_")) {
+      return res.status(400).json({ success: false, code: "incomplete", message: "Payment details are incomplete." });
+    }
+    const result = await service.settleStripeSession(sessionId, { userId: req.user._id, via: "checkout" });
+    const user = await User.findById(req.user._id);
+    res.json({ success: true, alreadyProcessed: result.alreadyProcessed, transaction: serializeTxn(result.txn), subscription: await statusPayload(user) });
   })
 );
 

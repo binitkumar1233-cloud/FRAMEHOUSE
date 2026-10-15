@@ -1,13 +1,16 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { TestCheckout } from "../components/TestCheckout";
 import {
   BillingError,
+  confirmStripe,
   formatDate,
+  getProviders,
   payTestOrder,
   reportCancelled,
   reportFailed,
   startCheckout,
+  startStripeCheckout,
   verifyPayment,
 } from "../services/billing";
 import type { CheckoutSession, Cycle, PlanName, SubscriptionStatus } from "../services/billing";
@@ -34,16 +37,57 @@ export function useCheckout({
   const [busyKey, setBusyKey] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [testSession, setTestSession] = useState<CheckoutSession | null>(null);
+  const [chooser, setChooser] = useState<{ plan: PlanName; cycle: Cycle } | null>(null);
 
   const activeMessage = (subscription: SubscriptionStatus) =>
     `${subscription.plan} plan is active until ${formatDate(subscription.expiryDate)}.`;
 
+  // Returning from Stripe's hosted checkout.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("stripe_session");
+    const cancelled = params.get("stripe_cancelled");
+    if (!sessionId && !cancelled) return;
+
+    window.history.replaceState({}, "", window.location.pathname);
+    if (cancelled) {
+      setToast("Payment cancelled. You weren't charged.");
+      return;
+    }
+
+    setConfirming(true);
+    confirmStripe(sessionId!)
+      .then((result) => {
+        onPaid(result.subscription);
+        setToast(activeMessage(result.subscription));
+      })
+      .catch((error) => setToast(error instanceof Error ? error.message : "We couldn't confirm your payment."))
+      .finally(() => setConfirming(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const purchase = useCallback(
-    async (plan: PlanName, cycle: Cycle) => {
+    async (plan: PlanName, cycle: Cycle, provider?: "razorpay" | "stripe") => {
       if (busyKey) return; // one checkout at a time
       setBusyKey(`${plan}-${cycle}`);
 
       try {
+        let chosen = provider;
+        if (!chosen) {
+          const providers = await getProviders().catch(() => ({ razorpay: true, stripe: false, test: false }));
+          if (providers.stripe && (providers.razorpay || providers.test)) {
+            setChooser({ plan, cycle });
+            return;
+          }
+          if (providers.stripe) chosen = "stripe";
+        }
+
+        if (chosen === "stripe") {
+          const { url } = await startStripeCheckout(plan, cycle);
+          window.location.assign(url);
+          return;
+        }
+
         const session = await startCheckout(plan, cycle);
 
         if (session.mode === "test") {
@@ -108,6 +152,35 @@ export function useCheckout({
     [busyKey, onPaid, setToast]
   );
 
+  const chooserUi = chooser ? (
+    <div className="modal-backdrop" key="provider-chooser" onClick={() => setChooser(null)}>
+      <div className="confirming-card" role="dialog" aria-label="Choose payment method" onClick={(event) => event.stopPropagation()} style={{ display: "grid", gap: 12, minWidth: 260 }}>
+        <strong>Choose payment method</strong>
+        <button
+          className="primary-button"
+          onClick={() => {
+            const { plan, cycle } = chooser;
+            setChooser(null);
+            void purchase(plan, cycle, "stripe");
+          }}
+        >
+          Pay with card (Stripe)
+        </button>
+        <button
+          className="primary-button"
+          onClick={() => {
+            const { plan, cycle } = chooser;
+            setChooser(null);
+            void purchase(plan, cycle, "razorpay");
+          }}
+        >
+          UPI, cards &amp; netbanking (Razorpay)
+        </button>
+        <button className="text-button" onClick={() => setChooser(null)}>Cancel</button>
+      </div>
+    </div>
+  ) : null;
+
   const checkoutUi = testSession ? (
     <TestCheckout
       key="test-checkout"
@@ -125,7 +198,7 @@ export function useCheckout({
       }}
       onClose={() => setTestSession(null)}
     />
-  ) : null;
+  ) : chooserUi;
 
   return { purchase, busyKey, confirming, checkoutUi };
 }

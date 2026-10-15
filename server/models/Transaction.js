@@ -42,9 +42,10 @@ const transactionSchema = new mongoose.Schema(
     // "razorpay" for real checkout, "test" for the built-in test checkout.
     mode: {
       type: String,
-      enum: ["razorpay", "test"],
+      enum: ["razorpay", "stripe", "test"],
       default: "razorpay",
     },
+    stripeSessionId: { type: String, index: true, sparse: true },
     razorpayOrderId: { type: String, index: true },
     razorpayPaymentId: String,
     razorpaySignature: String,

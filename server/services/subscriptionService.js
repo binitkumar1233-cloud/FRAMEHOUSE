@@ -285,6 +285,99 @@ const confirmWithRazorpay = async (txn, paymentId) => {
 };
 
 // ============================================================
+// STRIPE (hosted Checkout; redirects back to the site)
+// ============================================================
+
+let stripeClient;
+const stripe = () => {
+  if (stripeClient !== undefined) return stripeClient;
+  stripeClient = process.env.STRIPE_SECRET_KEY ? require("stripe")(process.env.STRIPE_SECRET_KEY) : null;
+  return stripeClient;
+};
+
+const clientBaseUrl = () =>
+  (process.env.APP_URL || (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0]).trim().replace(/\/+$/, "");
+
+const availableProviders = () => ({
+  razorpay: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
+  stripe: Boolean(process.env.STRIPE_SECRET_KEY),
+  test: testPaymentsAllowed(),
+});
+
+const createStripeSession = async (user, q) => {
+  const client = stripe();
+  if (!client) throw new SubscriptionError("Card payments aren't available right now.", 503, "payments-unavailable");
+
+  const txn = await Transaction.create({
+    user: user._id,
+    plan: q.plan,
+    cycle: q.cycle,
+    action: q.action,
+    amount: q.amount,
+    listPrice: q.listPrice,
+    credit: q.credit,
+    currency: q.currency,
+    mode: "stripe",
+    status: "created",
+    periodStart: q.periodStart,
+    periodEnd: q.periodEnd,
+  });
+
+  try {
+    const session = await client.checkout.sessions.create({
+      mode: "payment",
+      customer_email: user.email,
+      client_reference_id: txn._id.toString(),
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: q.currency.toLowerCase(),
+            unit_amount: Math.round(q.amount * 100),
+            product_data: { name: `Framehouse ${q.plan} plan (${q.cycle})` },
+          },
+        },
+      ],
+      metadata: { txnId: txn._id.toString(), userId: user._id.toString() },
+      success_url: `${clientBaseUrl()}/?stripe_session={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${clientBaseUrl()}/?stripe_cancelled=1`,
+    });
+    txn.stripeSessionId = session.id;
+    await txn.save();
+    return { txn, url: session.url };
+  } catch (error) {
+    await Transaction.updateOne({ _id: txn._id }, { $set: { status: "failed", failureReason: "Couldn't start Stripe checkout" } });
+    console.error("[payments] Stripe session failed:", error?.message || error);
+    throw new SubscriptionError("We couldn't start the payment. Please try again.", 502, "order-failed");
+  }
+};
+
+/** Applies a Stripe Checkout Session to its transaction if (and only if) it was really paid. */
+const settleStripeSession = async (sessionId, { userId, via }) => {
+  const client = stripe();
+  if (!client) throw new SubscriptionError("Card payments aren't available right now.", 503, "payments-unavailable");
+
+  const session = await client.checkout.sessions.retrieve(sessionId);
+  const txn = await Transaction.findOne({ stripeSessionId: session.id, mode: "stripe", ...(userId ? { user: userId } : {}) });
+  if (!txn) throw new SubscriptionError("Payment order not found.", 404, "not-found");
+  if (txn.status === "paid") return { txn, alreadyProcessed: true };
+
+  if (session.payment_status !== "paid") {
+    throw new SubscriptionError("This payment hasn't been completed.", 402, "not-paid");
+  }
+  if (Number(session.amount_total) !== Math.round(txn.amount * 100) || String(session.currency).toUpperCase() !== txn.currency) {
+    throw new SubscriptionError("Payment amount doesn't match the order.", 400, "verification-failed");
+  }
+
+  return activateTransaction(txn._id, {
+    paymentId: typeof session.payment_intent === "string" ? session.payment_intent : session.id,
+    signature: "stripe",
+    via,
+    method: "card",
+  });
+};
+
+// ============================================================
 // ACTIVATION
 // ============================================================
 
@@ -588,6 +681,10 @@ module.exports = {
   createOrder,
   verifySignature,
   confirmWithRazorpay,
+  stripe,
+  availableProviders,
+  createStripeSession,
+  settleStripeSession,
   activateTransaction,
   markTransaction,
   reconcileUser,
