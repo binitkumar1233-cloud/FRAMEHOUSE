@@ -167,3 +167,32 @@ p {
     radial-gradient(30rem 14rem at 50% 0%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 70%),
     color-mix(in srgb, var(--surface) 70%, transparent);
 }
+
+/* ---------- Small phones: keep the top bar inside the screen ---------- */
+@media (max-width: 480px) {
+  .topbar {
+    gap: 10px;
+    padding-inline: 14px;
+  }
+
+  .brand {
+    letter-spacing: 0.08em;
+    font-size: 15px;
+    gap: 8px;
+  }
+
+  .brand-logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .topbar-actions {
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .topbar-actions .primary-button,
+  .topbar-actions .small-primary {
+    padding-inline: 14px;
+  }
+}
