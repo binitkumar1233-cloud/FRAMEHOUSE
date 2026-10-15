@@ -305,10 +305,16 @@ export default function Meetings({ onJoin, initialRoomId = "" }: MeetingsProps) 
                   />
                 </label>
               )}
-              <button type="submit" className="secondary-button" disabled={loading}>
+              <button type="submit" className="primary-button" disabled={loading}>
                 {loading ? "Joining..." : "Join meeting"}
               </button>
             </form>
+
+            <ul className="meeting-assurances" aria-label="Meeting privacy">
+              <li><Icon name="shield" size={16} /><span><strong>Private by design</strong>Calls go directly between participants and are encrypted in transit.</span></li>
+              <li><Icon name="users" size={16} /><span><strong>Host controls</strong>Hosts can mute, remove or lock the room at any time.</span></li>
+              <li><Icon name="video" size={16} /><span><strong>Chat clears after the call</strong>Messages and shared files are deleted when the meeting ends.</span></li>
+            </ul>
           </section>
         </div>
 

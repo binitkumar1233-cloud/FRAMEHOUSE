@@ -366,3 +366,72 @@ p {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Meetings lobby ---------- */
+.meetings-grid {
+  align-items: stretch;
+}
+
+.meeting-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.meeting-card form {
+  display: grid;
+  gap: 14px;
+}
+
+.meeting-assurances {
+  list-style: none;
+  margin: 26px 0 0;
+  padding: 20px 0 0;
+  display: grid;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  text-align: left;
+}
+
+.meeting-assurances li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.meeting-assurances li > svg {
+  box-sizing: content-box;
+  padding: 8px;
+  border-radius: 10px;
+  color: var(--primary-hover);
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--line));
+}
+
+.meeting-assurances span {
+  display: grid;
+  gap: 2px;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.meeting-assurances strong {
+  color: var(--text);
+  font-size: 14.5px;
+}
+
+.meeting-icon {
+  background: var(--brand-gradient);
+  color: #fff;
+  border: 0;
+  box-shadow: 0 12px 28px -12px var(--primary-glow);
+}
+
+.meeting-type-toggle button {
+  transition: transform 0.2s var(--ease-out), border-color 0.2s, background 0.2s;
+}
+
+.meeting-type-toggle button:hover {
+  transform: translateY(-2px);
+}
