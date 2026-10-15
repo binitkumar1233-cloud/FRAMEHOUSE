@@ -1,0 +1,25 @@
+# Your own TURN relay (coturn). Run on a small VPS with a public IP.
+#   cp .env.example .env   # fill in the values
+#   docker compose up -d
+services:
+  coturn:
+    image: coturn/coturn:4.6.2
+    restart: unless-stopped
+    network_mode: host   # TURN needs the real public IP and a UDP port range
+    command:
+      - -n
+      - --log-file=stdout
+      - --realm=${TURN_REALM}
+      - --external-ip=${TURN_PUBLIC_IP}
+      - --listening-port=3478
+      - --min-port=49160
+      - --max-port=49200
+      - --fingerprint
+      - --use-auth-secret
+      - --static-auth-secret=${TURN_SECRET}
+      - --no-multicast-peers
+      - --no-cli
+      - --denied-peer-ip=10.0.0.0-10.255.255.255
+      - --denied-peer-ip=172.16.0.0-172.31.255.255
+      - --denied-peer-ip=192.168.0.0-192.168.255.255
+      - --denied-peer-ip=127.0.0.0-127.255.255.255
