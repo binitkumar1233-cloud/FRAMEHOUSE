@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { TestCheckout } from "../components/TestCheckout";
+import { UpiPayOptions } from "../components/UpiPayOptions";
 import {
   BillingError,
   confirmStripe,
@@ -209,7 +210,7 @@ export function useCheckout({
           <>
             <strong>Pay ₹{upi.session.amount} by UPI</strong>
             <p style={{ margin: 0 }}>Pay to <b>{upi.session.upiId}</b> ({upi.session.payee}).</p>
-            <a className="primary-button" href={upi.session.link} style={{ textAlign: "center" }}>Open UPI app</a>
+            <UpiPayOptions link={upi.session.link} />
             <p style={{ margin: 0, fontSize: 13, opacity: 0.8 }}>After paying, enter the UPI reference / UTR number from your payment app.</p>
             <input
               value={upi.utr}
