@@ -1,0 +1,124 @@
+/* Design layer: a more refined, premium look. Loaded after polish.css and motion.css. */
+
+/* Ambient brand light behind every page */
+body {
+  background-image:
+    radial-gradient(60rem 36rem at 12% -8%, color-mix(in srgb, var(--primary) 20%, transparent), transparent 60%),
+    radial-gradient(48rem 30rem at 92% 4%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 62%);
+  background-attachment: fixed;
+}
+
+/* Frosted navigation bar */
+.topbar {
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  -webkit-backdrop-filter: saturate(160%) blur(18px);
+  backdrop-filter: saturate(160%) blur(18px);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 10px 40px -24px rgba(0, 0, 0, 0.6);
+}
+
+/* Wordmark */
+.brand {
+  letter-spacing: 0.16em;
+  font-weight: 800;
+}
+
+.brand-logo {
+  box-shadow: 0 8px 26px -6px rgba(99, 102, 241, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* Section labels as refined pills */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--primary) 40%, var(--line));
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary-hover);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Headlines: tighter, with a gradient accent on the page title */
+h1,
+.hero-copy h1,
+.page-heading h1 {
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.hero-copy h1,
+.page-heading h1 {
+  background: linear-gradient(180deg, var(--text) 30%, color-mix(in srgb, var(--text) 62%, var(--primary-hover)) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Cards: glassy surface with a hairline highlight */
+.video-card,
+.pricing-card,
+.stat-card,
+.meeting-card,
+.meeting-history-card,
+.profile-card,
+.sec-card {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--text) 5%, transparent), transparent 40%),
+    var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 0 0 color-mix(in srgb, var(--text) 8%, transparent) inset, 0 18px 40px -28px rgba(0, 0, 0, 0.7);
+}
+
+/* Primary action: richer gradient and depth */
+.primary-button,
+.small-primary {
+  background-image: var(--brand-gradient);
+  color: #fff;
+  border: 0;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 10px 28px -12px var(--primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* Hero artwork and the featured plan stand out */
+.hero-image-frame {
+  border-radius: var(--radius-xl);
+  box-shadow: 0 40px 90px -40px rgba(99, 102, 241, 0.6), 0 0 0 1px var(--line-strong);
+}
+
+.pricing-card.featured,
+.pricing-card.is-featured,
+.pricing-card.recommended {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  box-shadow: 0 30px 70px -34px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* Footer: quieter, with a gradient hairline */
+.footer {
+  border-top: 1px solid transparent;
+  border-image: linear-gradient(90deg, transparent, var(--line-strong), transparent) 1;
+}
+
+:root[data-theme="light"] body {
+  background-image:
+    radial-gradient(60rem 36rem at 12% -8%, rgba(99, 102, 241, 0.12), transparent 60%),
+    radial-gradient(48rem 30rem at 92% 4%, rgba(217, 154, 28, 0.1), transparent 62%);
+}
+
+:root[data-theme="light"] .hero-copy h1,
+:root[data-theme="light"] .page-heading h1 {
+  background: linear-gradient(180deg, var(--text) 40%, var(--primary) 130%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
