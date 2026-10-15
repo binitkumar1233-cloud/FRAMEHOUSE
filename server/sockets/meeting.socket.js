@@ -39,6 +39,15 @@ const ALLOWED_FILE_TYPES = new Set([
 
 const rooms = new Map();
 
+// An empty room's chat is erased after a short grace period (so a page
+// refresh doesn't lose it) unless someone rejoins first.
+const EMPTY_ROOM_CHAT_TTL_MS = 10 * 60 * 1000;
+const cleanupTimers = new Map();
+const cancelChatCleanup = (roomId) => {
+  clearTimeout(cleanupTimers.get(roomId));
+  cleanupTimers.delete(roomId);
+};
+
 const getRoom = (roomId) => rooms.get(roomId);
 
 const ensureRoom = (roomId, meeting) => {
@@ -159,7 +168,18 @@ const registerMeetingSockets = (io) => {
       );
     }
 
-    if (room.peers.size === 0) rooms.delete(roomId);
+    if (room.peers.size === 0) {
+      rooms.delete(roomId);
+      cancelChatCleanup(roomId);
+      const timer = setTimeout(() => {
+        cleanupTimers.delete(roomId);
+        if (!getRoom(roomId)) {
+          ChatMessage.deleteMany({ roomId }).catch((error) => console.error("Chat cleanup failed:", error.message));
+        }
+      }, EMPTY_ROOM_CHAT_TTL_MS);
+      timer.unref?.();
+      cleanupTimers.set(roomId, timer);
+    }
     return peer;
   };
 
@@ -241,6 +261,7 @@ const registerMeetingSockets = (io) => {
           return socket.emit("join-error", { code: "not-admitted", message: "Join the meeting from the meetings page first." });
         }
 
+        cancelChatCleanup(roomId);
         const room = ensureRoom(roomId, meeting);
 
         // One live session per user per room: a refresh or a second

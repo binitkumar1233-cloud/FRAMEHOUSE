@@ -15,6 +15,22 @@ services:
         value: "false"
       - key: WATCH_COMPLETION_PERCENT
         value: "95"
+      - key: CHAT_ENCRYPTION_KEY
+        sync: false
+      - key: METERED_DOMAIN
+        sync: false
+      - key: METERED_API_KEY
+        sync: false
+      - key: TURN_URLS
+        sync: false
+      - key: TURN_SECRET
+        sync: false
+      - key: TURN_USERNAME
+        sync: false
+      - key: TURN_CREDENTIAL
+        sync: false
+      - key: TURN_RELAY_ONLY
+        sync: false
       - key: CLIENT_URL
         sync: false
       - key: MONGO_URI

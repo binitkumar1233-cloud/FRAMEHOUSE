@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Socket } from "socket.io-client";
 
+import { API_URL } from "../services/api";
 import { createMeetingSocket } from "../services/meetingSocket";
 
 // ============================================================
@@ -122,6 +123,23 @@ const buildIceServers = (): RTCIceServer[] => {
   }
 
   return iceServers;
+};
+
+// Server-provided TURN/STUN (credentials stay out of the website bundle).
+let serverIce: { iceServers: RTCIceServer[]; relayOnly: boolean } | null = null;
+
+const loadIceServers = async () => {
+  try {
+    const response = await fetch(`${API_URL}/meetings/ice-servers`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+    const data = await response.json();
+    if (response.ok && Array.isArray(data.iceServers)) {
+      serverIce = { iceServers: data.iceServers, relayOnly: Boolean(data.relayOnly) };
+    }
+  } catch {
+    serverIce = null; // fall back to the build-time settings
+  }
 };
 
 const STATS_INTERVAL_MS = 4000;
@@ -427,7 +445,10 @@ export function useWebRTC() {
   };
 
   function createPeer(socketId: string, isOfferer: boolean): PeerEntry {
-    const pc = new RTCPeerConnection({ iceServers: buildIceServers() });
+    const pc = new RTCPeerConnection({
+      iceServers: serverIce?.iceServers ?? buildIceServers(),
+      ...(serverIce?.relayOnly ? { iceTransportPolicy: "relay" as RTCIceTransportPolicy } : {}),
+    });
     const entry: PeerEntry = {
       pc,
       pcId: newId(),
@@ -619,6 +640,9 @@ export function useWebRTC() {
         refreshLocalState();
         void loadDevices();
       }
+
+      await loadIceServers();
+      if (session !== sessionRef.current) return;
 
       let socket: Socket;
       try {

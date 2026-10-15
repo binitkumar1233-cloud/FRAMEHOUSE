@@ -3,10 +3,16 @@ const meetingController = require("../controllers/meeting.controller");
 const auth = require("../middleware/auth");
 const requireMeetingHost = require("../middleware/requireMeetingHost");
 
+const { getIceConfig } = require("../services/iceServers");
+
 const router = express.Router();
 
 router.use(auth);
 
+router.get("/ice-servers", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json({ success: true, ...(await getIceConfig(String(req.user._id))) });
+});
 router.post("/", meetingController.createMeeting);
 router.get("/mine", meetingController.listMyMeetings);
 router.delete("/mine", meetingController.clearMyHistory);
