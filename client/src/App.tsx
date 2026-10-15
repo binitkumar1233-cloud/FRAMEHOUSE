@@ -497,6 +497,38 @@ function Home({ videos, videosLoading, user, subscription, navigate, setToast, o
         />
       </section>
 
+      <RevealGroup as="section" className="home-stats" gap={0.1} aria-label="Framehouse at a glance">
+        {[
+          { value: "4K", label: "Ultra HD streaming" },
+          { value: "50", label: "People per meeting" },
+          { value: "Private", label: "Encrypted video calls" },
+          { value: "24/7", label: "Watch anywhere" },
+        ].map((stat) => (
+          <RevealItem key={stat.label} className="home-stat">
+            <strong>{stat.value}</strong>
+            <span>{stat.label}</span>
+          </RevealItem>
+        ))}
+      </RevealGroup>
+
+      <section className="content-section home-steps" aria-label="How Framehouse works">
+        <SectionIntro label="How it works" title="From sign-up to showtime in three steps" />
+        <RevealGroup className="steps-grid" gap={0.14}>
+          {[
+            { icon: "users", title: "Create your account", text: "Sign up free in under a minute. No card needed to start watching." },
+            { icon: "film", title: "Pick what to watch", text: "Browse the library, resume where you left off and download for offline." },
+            { icon: "video", title: "Meet face to face", text: "Start a private room, share the link and talk with chat and screen sharing." },
+          ].map((step, index) => (
+            <RevealItem key={step.title} className="step-card">
+              <span className="step-number">0{index + 1}</span>
+              <span className="step-icon"><Icon name={step.icon as any} size={22} /></span>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </RevealItem>
+          ))}
+        </RevealGroup>
+      </section>
+
       <RevealGroup as="section" className="home-showcase" gap={0.14}>
         <RevealItem className="home-showcase-copy">
           <span className="eyebrow">More than streaming</span>
@@ -549,6 +581,20 @@ function Home({ videos, videosLoading, user, subscription, navigate, setToast, o
         onPrimary={() => (user ? navigate("browse") : openAuth())}
         onSecondary={() => navigate("pricing")}
       />
+
+      <section className="home-cta" aria-label="Get started">
+        <div className="home-cta-inner">
+          <h2>Ready to press play?</h2>
+          <p>Join Framehouse today. Stream premium films, then meet face to face, all in one place.</p>
+          <div className="home-cta-actions">
+            <button className="primary-button" onClick={() => (user ? navigate("browse") : openAuth())}>
+              {user ? "Explore the library" : "Get started free"}
+              <Icon name="arrow-right" size={16} />
+            </button>
+            <button className="line-button" onClick={() => navigate("pricing")}>View plans</button>
+          </div>
+        </div>
+      </section>
     </>
   );
 }

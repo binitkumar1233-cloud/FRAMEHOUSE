@@ -196,3 +196,173 @@ p {
     padding-inline: 14px;
   }
 }
+
+/* ---------- Home: stats strip, steps, closing call-to-action ---------- */
+.home-stats {
+  max-width: 1180px;
+  margin: 24px auto 0;
+  padding: 28px clamp(18px, 4vw, 40px);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(40rem 12rem at 50% -40%, color-mix(in srgb, var(--primary) 28%, transparent), transparent 70%),
+    color-mix(in srgb, var(--surface) 80%, transparent);
+}
+
+.home-stat {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  text-align: center;
+}
+
+.home-stat + .home-stat {
+  border-left: 1px solid var(--line);
+}
+
+.home-stat strong {
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: var(--brand-gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.home-stat span {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.home-steps {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+.steps-grid {
+  margin-top: 36px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.step-card {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding: 30px 26px 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--text) 5%, transparent), transparent 55%), var(--surface);
+  overflow: hidden;
+  transition: transform 0.35s var(--ease-out), border-color 0.3s var(--ease-out), box-shadow 0.35s var(--ease-out);
+}
+
+.step-card:hover {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--line-strong));
+  box-shadow: 0 24px 50px -28px var(--primary-glow);
+}
+
+.step-number {
+  position: absolute;
+  top: 10px;
+  right: 18px;
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: color-mix(in srgb, var(--text) 7%, transparent);
+}
+
+.step-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  color: #fff;
+  background: var(--brand-gradient);
+  box-shadow: 0 12px 26px -10px var(--primary-glow);
+}
+
+.step-card h3 {
+  margin: 8px 0 0;
+  font-size: 19px;
+}
+
+.step-card p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.home-cta {
+  max-width: 1180px;
+  margin: 72px auto 24px;
+  padding: 0 clamp(14px, 3vw, 24px);
+}
+
+.home-cta-inner {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: clamp(40px, 7vw, 76px) clamp(20px, 5vw, 56px);
+  text-align: center;
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in srgb, var(--primary) 45%, var(--line-strong));
+  background:
+    radial-gradient(34rem 16rem at 15% 0%, color-mix(in srgb, var(--primary) 45%, transparent), transparent 70%),
+    radial-gradient(30rem 16rem at 90% 100%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 70%),
+    var(--surface);
+  box-shadow: 0 40px 90px -50px var(--primary-glow);
+  overflow: hidden;
+}
+
+.home-cta-inner h2 {
+  margin: 0;
+  font-size: clamp(30px, 5vw, 52px);
+  letter-spacing: -0.03em;
+}
+
+.home-cta-inner p {
+  margin: 0;
+  max-width: 560px;
+  color: var(--text-secondary);
+  font-size: clamp(15px, 2vw, 18px);
+}
+
+.home-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+@media (max-width: 800px) {
+  .home-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-inline: 14px;
+  }
+
+  .home-stat + .home-stat {
+    border-left: 0;
+  }
+
+  .home-stat:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+  }
+
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+}
