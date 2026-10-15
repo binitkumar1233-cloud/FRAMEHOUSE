@@ -6,3 +6,5 @@ client/dist/
 client/.vercel/
 server/outbox/
 *.log
+
+.vercel/

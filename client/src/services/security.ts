@@ -65,6 +65,7 @@ export type SecurityOverview = {
   theme: "light" | "dark";
   themeSource: "auto" | "manual";
   email: string;
+  phone: string | null;
   lastLogin: LoginRecord | null;
   failedLast30Days: number;
   activeSessions: number;
@@ -76,6 +77,7 @@ export type SecurityOverview = {
 export type OtpChallenge = {
   challengeId: string;
   maskedEmail: string;
+  maskedPhone?: string;
   reasons: string[];
   expiresInSeconds: number;
   resendAfterSeconds: number;
@@ -128,6 +130,8 @@ export const removeDevice = (id: string) => request<unknown>("DELETE", `/securit
 export const trustThisBrowser = (days: number) => request<unknown>("POST", "/security/devices/trust", { days });
 export const setThemePreference = (theme: "light" | "dark" | "auto") =>
   request<{ theme: "light" | "dark"; themeSource: "auto" | "manual" }>("PUT", "/security/theme", { theme });
+export const setPhone = (phone: string, currentPassword: string) =>
+  request<{ phone: string | null }>("PUT", "/security/phone", { phone, currentPassword });
 export const changePassword = (currentPassword: string, newPassword: string) =>
   request<{
     revokedSessions: number;

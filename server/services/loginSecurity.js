@@ -7,6 +7,7 @@ const UserSession = require("../models/UserSession");
 const { lookupIp } = require("./geoip");
 const { sendMail } = require("./mailer");
 const { otpEmail } = require("./emailTemplates");
+const { sendSms, maskPhone } = require("./sms");
 const { ensureUsername } = require("./username");
 
 const num = (value, fallback) => (Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : fallback);
@@ -131,11 +132,20 @@ const maskEmail = (email = "") => {
 const deliverCode = async (user, code, ctx, reasons) => {
   const { otpMinutes } = CONFIG();
   const mail = otpEmail({ user, code, minutes: otpMinutes, ctx, reasons });
-  try {
-    await sendMail({ to: user.email, subject: mail.subject, html: mail.html, text: mail.text });
-  } catch (error) {
-    console.error("[security] could not send OTP email:", error.message);
+  const tasks = [
+    sendMail({ to: user.email, subject: mail.subject, html: mail.html, text: mail.text }).catch((error) =>
+      console.error("[security] could not send OTP email:", error.message)
+    ),
+  ];
+  if (user.phone) {
+    tasks.push(
+      sendSms({
+        to: user.phone,
+        body: `Your Framehouse verification code is ${code}. It expires in ${otpMinutes} minutes. Don't share it with anyone.`,
+      }).catch((error) => console.error("[security] could not send OTP SMS:", error.message))
+    );
   }
+  await Promise.all(tasks);
 };
 
 const startChallenge = async (user, ctx, reasons) => {
@@ -159,6 +169,7 @@ const startChallenge = async (user, ctx, reasons) => {
   return {
     challengeId,
     maskedEmail: maskEmail(user.email),
+    maskedPhone: user.phone ? maskPhone(user.phone) : undefined,
     expiresInSeconds: cfg.otpMinutes * 60,
     resendAfterSeconds: cfg.resendSeconds,
     reasons,

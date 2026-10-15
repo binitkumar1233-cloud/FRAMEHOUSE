@@ -9,6 +9,7 @@ const UserSession = require("../models/UserSession");
 const TrustedDevice = require("../models/TrustedDevice");
 const security = require("../services/loginSecurity");
 const { sendMail } = require("../services/mailer");
+const { normalizePhone } = require("../services/sms");
 const { passwordResetEmail } = require("../services/emailTemplates");
 
 const router = express.Router();
@@ -23,6 +24,15 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Name, email and password are required",
+      });
+    }
+
+    const hasPhone = typeof req.body.phone === "string" && req.body.phone.trim() !== "";
+    const phone = hasPhone ? normalizePhone(req.body.phone) : undefined;
+    if (hasPhone && !phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter the mobile number with country code, like +919876543210.",
       });
     }
 
@@ -49,6 +59,7 @@ router.post("/register", async (req, res) => {
     const user = await User.create({
       name,
       email: email.toLowerCase(),
+      phone,
       password: hashedPassword,
     });
 
@@ -124,7 +135,9 @@ router.post("/login", async (req, res) => {
       return res.json({
         success: true,
         otpRequired: true,
-        message: "Enter the code we emailed you to finish signing in.",
+        message: challenge.maskedPhone
+          ? "Enter the code we emailed and texted you to finish signing in."
+          : "Enter the code we emailed you to finish signing in.",
         ...challenge,
         trustChoices: security.CONFIG().trustChoices,
         trustDefault: security.CONFIG().trustedDays,

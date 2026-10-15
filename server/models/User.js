@@ -16,6 +16,12 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // Optional mobile number in E.164 format (+919876543210). Sign-in codes are also texted here.
+    phone: {
+      type: String,
+      trim: true,
+    },
+
     password: {
       type: String,
       required: true,
