@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 
 const Transaction = require("../models/Transaction");
+const SiteSetting = require("../models/SiteSetting");
 const User = require("../models/User");
 const auth = require("../middleware/auth");
 const asyncHandler = require("../utils/asyncHandler");
@@ -101,9 +102,12 @@ router.post(
   })
 );
 
-router.get("/providers", (req, res) => {
-  res.json({ success: true, providers: service.availableProviders() });
-});
+router.get(
+  "/providers",
+  handle(async (req, res) => {
+    res.json({ success: true, providers: await service.availableProviders() });
+  })
+);
 
 // Stripe server-to-server notifications. Configure
 // https://<your-api>/api/subscription/stripe-webhook in Stripe with STRIPE_WEBHOOK_SECRET.
@@ -239,7 +243,7 @@ router.post(
 router.post(
   "/checkout/upi",
   handle(async (req, res) => {
-    const upiId = process.env.UPI_ID;
+    const { upiId, payee } = await service.getUpiConfig();
     if (!upiId) return res.status(503).json({ success: false, code: "payments-unavailable", message: "UPI payments aren't available right now." });
 
     const q = await service.quote(req.user, req.body?.plan, req.body?.cycle);
@@ -269,7 +273,6 @@ router.post(
       });
     }
 
-    const payee = process.env.UPI_PAYEE_NAME || "Framehouse";
     const note = `Framehouse ${q.plan}`;
     const link = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payee)}&am=${q.amount}&cu=INR&tn=${encodeURIComponent(note)}`;
     res.status(201).json({ success: true, transactionId: txn._id.toString(), upiId, payee, amount: q.amount, link, note });
@@ -306,6 +309,28 @@ router.post(
 
 const requireAdmin = (req, res, next) =>
   req.user?.role === "admin" ? next() : res.status(403).json({ success: false, message: "Admin access required" });
+
+router.get(
+  "/admin/upi-settings",
+  requireAdmin,
+  handle(async (req, res) => {
+    res.json({ success: true, ...(await service.getUpiConfig()) });
+  })
+);
+
+router.put(
+  "/admin/upi-settings",
+  requireAdmin,
+  handle(async (req, res) => {
+    const upiId = String(req.body?.upiId || "").trim();
+    const payee = String(req.body?.payee || "").trim().slice(0, 60);
+    if (upiId && !/^[a-zA-Z0-9.\-_]{2,64}@[a-zA-Z][a-zA-Z0-9.\-]{1,40}$/.test(upiId)) {
+      return res.status(400).json({ success: false, message: "Enter a valid UPI ID, like name@bank." });
+    }
+    await SiteSetting.findOneAndUpdate({ key: "upi" }, { key: "upi", value: { upiId, payee } }, { upsert: true });
+    res.json({ success: true, ...(await service.getUpiConfig()) });
+  })
+);
 
 router.get(
   "/admin/upi",

@@ -150,6 +150,9 @@ export const submitUpiReference = (transactionId: string, utr: string) =>
 export type PendingUpi = { id: string; user: { name: string; email: string } | null; plan: string; cycle: string; amount: number; reference: string; createdAt: string };
 export const getPendingUpi = () => request<{ payments: PendingUpi[] }>("/admin/upi").then((d) => d.payments);
 export const decideUpi = (id: string, decision: "approve" | "reject") => post(`/admin/upi/${id}/${decision}`);
+export const getUpiSettings = () => request<{ upiId: string; payee: string }>("/admin/upi-settings");
+export const saveUpiSettings = (upiId: string, payee: string) =>
+  request<{ upiId: string; payee: string }>("/admin/upi-settings", { method: "PUT", body: JSON.stringify({ upiId, payee }) });
 export const startStripeCheckout = (plan: PlanName, cycle: Cycle) => post<{ url: string }>("/checkout/stripe", { plan, cycle });
 export const confirmStripe = (sessionId: string) =>
   post<{ subscription: SubscriptionStatus; transaction: BillingTransaction; alreadyProcessed: boolean }>("/stripe/confirm", { sessionId });

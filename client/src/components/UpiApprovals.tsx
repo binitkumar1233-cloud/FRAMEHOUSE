@@ -1,7 +1,55 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { decideUpi, getPendingUpi } from "../services/billing";
+import { decideUpi, getPendingUpi, getUpiSettings, saveUpiSettings } from "../services/billing";
 import type { PendingUpi } from "../services/billing";
+
+function UpiSettingsForm({ setToast }: { setToast: (message: string) => void }) {
+  const [upiId, setUpiId] = useState("");
+  const [payee, setPayee] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    getUpiSettings()
+      .then((s) => {
+        setUpiId(s.upiId);
+        setPayee(s.payee);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const save = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await saveUpiSettings(upiId, payee);
+      setToast(upiId ? "UPI payments are now enabled." : "UPI payments turned off.");
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Couldn't save UPI settings");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form className="admin-video-form" onSubmit={save}>
+      <h2>UPI payment settings</h2>
+      <div className="admin-form-grid">
+        <label>
+          Your UPI ID
+          <input value={upiId} onChange={(e) => setUpiId(e.target.value)} placeholder="yourname@okaxis" />
+        </label>
+        <label>
+          Name shown to customers
+          <input value={payee} onChange={(e) => setPayee(e.target.value)} placeholder="Framehouse" />
+        </label>
+      </div>
+      <p className="admin-hint">Customers will pay to this UPI ID. Leave it empty to turn UPI off.</p>
+      <div className="admin-form-actions">
+        <button type="submit" className="primary-button" disabled={saving}>{saving ? "Saving…" : "Save UPI settings"}</button>
+      </div>
+    </form>
+  );
+}
 
 export function UpiApprovals({ setToast }: { setToast: (message: string) => void }) {
   const [payments, setPayments] = useState<PendingUpi[]>([]);
@@ -28,6 +76,8 @@ export function UpiApprovals({ setToast }: { setToast: (message: string) => void
   };
 
   return (
+    <>
+    <UpiSettingsForm setToast={setToast} />
     <div className="admin-video-list">
       <div className="admin-list-header">
         <h2>UPI payments to verify</h2>
@@ -48,5 +98,6 @@ export function UpiApprovals({ setToast }: { setToast: (message: string) => void
         </div>
       ))}
     </div>
+    </>
   );
 }

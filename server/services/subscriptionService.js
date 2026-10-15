@@ -298,10 +298,20 @@ const stripe = () => {
 const clientBaseUrl = () =>
   (process.env.APP_URL || (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0]).trim().replace(/\/+$/, "");
 
-const availableProviders = () => ({
+const SiteSetting = require("../models/SiteSetting");
+
+/** UPI details: set by an admin on the website, falling back to environment variables. */
+const getUpiConfig = async () => {
+  const saved = await SiteSetting.findOne({ key: "upi" }).lean();
+  const upiId = (saved?.value?.upiId || process.env.UPI_ID || "").trim();
+  const payee = (saved?.value?.payee || process.env.UPI_PAYEE_NAME || "Framehouse").trim();
+  return { upiId, payee };
+};
+
+const availableProviders = async () => ({
   razorpay: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
   stripe: Boolean(process.env.STRIPE_SECRET_KEY),
-  upi: Boolean(process.env.UPI_ID),
+  upi: Boolean((await getUpiConfig()).upiId),
   test: testPaymentsAllowed(),
 });
 
@@ -684,6 +694,7 @@ module.exports = {
   confirmWithRazorpay,
   stripe,
   availableProviders,
+  getUpiConfig,
   createStripeSession,
   settleStripeSession,
   activateTransaction,
