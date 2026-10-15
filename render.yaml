@@ -31,6 +31,8 @@ services:
         sync: false
       - key: TURN_RELAY_ONLY
         sync: false
+      - key: ADMIN_EMAILS
+        sync: false
       - key: CLIENT_URL
         sync: false
       - key: MONGO_URI

@@ -64,6 +64,14 @@ const connectDb = () => {
       .connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 8000 })
       .then(() => {
         console.log("MongoDB connected successfully");
+        // ADMIN_EMAILS=you@example.com,other@example.com makes those accounts admins.
+        const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+        if (adminEmails.length) {
+          require("./models/User")
+            .updateMany({ email: { $in: adminEmails }, role: { $ne: "admin" } }, { $set: { role: "admin" } })
+            .then((r) => r.modifiedCount && console.log(`Promoted ${r.modifiedCount} admin account(s)`))
+            .catch((e) => console.error("Admin promotion failed:", e.message));
+        }
         // Expire ended plans, send renewal reminders, close abandoned orders.
         if (!process.env.VERCEL) startSubscriptionJobs();
       })
