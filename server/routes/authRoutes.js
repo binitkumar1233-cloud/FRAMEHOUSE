@@ -27,6 +27,10 @@ router.post("/register", async (req, res) => {
       });
     }
 
+    if ([name, email, password].some((value) => typeof value !== "string") || name.length > 80 || email.length > 200 || password.length > 200) {
+      return res.status(400).json({ success: false, message: "Enter a valid name, email and password." });
+    }
+
     const hasPhone = typeof req.body.phone === "string" && req.body.phone.trim() !== "";
     const phone = hasPhone ? normalizePhone(req.body.phone) : undefined;
     if (hasPhone && !phone) {
@@ -36,10 +40,10 @@ router.post("/register", async (req, res) => {
       });
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       return res.status(400).json({
         success: false,
-        message: "Password must contain at least 6 characters",
+        message: "Password must contain at least 8 characters",
       });
     }
 
@@ -284,8 +288,8 @@ router.post("/password/reset", async (req, res) => {
         typeof newPassword !== "string") {
       return res.status(400).json({ success: false, message: "Enter the reset code and a new password." });
     }
-    if (newPassword.length < 6) {
-      return res.status(400).json({ success: false, message: "New password must contain at least 6 characters." });
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: "New password must contain at least 8 characters." });
     }
 
     const challenge = await PasswordResetChallenge.findOne({

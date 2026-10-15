@@ -800,7 +800,7 @@ function AuthModal({ mode, setMode, loading, submit, close, otp, onVerify, onRes
           placeholder="••••••••"
           autoComplete={autoComplete}
           required
-          minLength={name === "password" ? 6 : undefined}
+          minLength={name === "password" && autoComplete === "new-password" ? 8 : undefined}
         />
         <button
           type="button"

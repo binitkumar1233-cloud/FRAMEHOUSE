@@ -328,7 +328,7 @@ export default function AccountSecurity({
               type="password"
               name="newPassword"
               autoComplete="new-password"
-              minLength={6}
+              minLength={8}
               value={newPassword}
               onChange={(event) => setNewPassword(event.target.value)}
               required
@@ -340,7 +340,7 @@ export default function AccountSecurity({
               type="password"
               name="confirmPassword"
               autoComplete="new-password"
-              minLength={6}
+              minLength={8}
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               required

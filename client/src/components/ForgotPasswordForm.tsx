@@ -107,7 +107,7 @@ export function ForgotPasswordForm({ onBack, onComplete }: Props) {
               <input
                 type="password"
                 autoComplete="new-password"
-                minLength={6}
+                minLength={8}
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
                 required
@@ -118,7 +118,7 @@ export function ForgotPasswordForm({ onBack, onComplete }: Props) {
               <input
                 type="password"
                 autoComplete="new-password"
-                minLength={6}
+                minLength={8}
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 required
