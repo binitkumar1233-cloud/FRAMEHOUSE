@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b1c" />
+    <meta name="color-scheme" content="dark" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Framehouse" />
+    <meta property="og:title" content="Framehouse: premium video and live meetings" />
+    <meta property="og:description" content="Stream cinematic films in up to 4K, download for offline viewing, and meet face to face with encrypted video calls." />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Framehouse: premium video and live meetings" />
+    <meta name="description" content="Framehouse — premium video streaming and real-time meetings." />
+    <title>Framehouse</title>
+    <script>
+      // Apply the saved theme before the first paint so there is no flash.
+      try {
+        var t = localStorage.getItem("framehouse.theme") === "light" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", t);
+        document.documentElement.style.colorScheme = t;
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
