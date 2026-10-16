@@ -8,3 +8,4 @@ server/outbox/
 *.log
 
 .vercel/
+video-platform/
